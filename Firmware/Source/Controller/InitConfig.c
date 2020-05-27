@@ -10,15 +10,8 @@ Boolean SysClk_Config()
 
 void EI_Config()
 {
-//	// Overflow 90%
-//	EXTI_Config(EXTI_PB, EXTI_4, FALL_TRIG, 0);
-//	EXTI_EnableInterrupt(EXTI4_IRQn, 0, true);
-//
-//	// Overflow 10%
-//	EXTI_Config(EXTI_PB, EXTI_8, FALL_TRIG, 0);
-//	EXTI_EnableInterrupt(EXTI9_5_IRQn, 0, true);
 
-    EXTI_Config(EXTI_PA, EXTI_8, FALL_TRIG, 0);
+    EXTI_Config(EXTI_PA, EXTI_8, RISE_TRIG, 0);
     EXTI_EnableInterrupt(EXTI3_IRQn, 0, true);
 
 }
@@ -33,7 +26,7 @@ void IO_Config()
 	GPIO_Config(GPIOA, Pin_3, Analog, NoPull, HighSpeed, NoPull);
 
 	// Цифровые входы
-	// PA8 - SYNC_LINE
+	//PA8 - SYNC_LINE
 	GPIO_Config(GPIOA, Pin_8, Input, NoPull, HighSpeed, NoPull);
 
 	// Выходы
@@ -42,6 +35,9 @@ void IO_Config()
 
 	// PA5 - SRCK
 	GPIO_Config(GPIOA, Pin_5, Output, PushPull, HighSpeed, NoPull);
+
+	//PA7 - DATA
+	GPIO_Config(GPIOA, Pin_7, Output, PushPull, HighSpeed, NoPull);
 
 	// PB0 - FAN
 	GPIO_Config(GPIOB, Pin_0, Output, PushPull, HighSpeed, NoPull);
@@ -55,10 +51,10 @@ void IO_Config()
 	// PB4 - LED
 	GPIO_Config(GPIOB, Pin_4, Output, PushPull, HighSpeed, NoPull);
 
-	// PB10 - PS_BOARD
+	// PB10 - PS_CTRL
 	GPIO_Config(GPIOB, Pin_10, Output, PushPull, HighSpeed, NoPull);
 
-	// PB11 - POWER_RELLAY
+	// PB11 - Meanwell_CTRL
 	GPIO_Config(GPIOB, Pin_11, Output, PushPull, HighSpeed, NoPull);
 
 	// Альтернативные функции
@@ -91,23 +87,13 @@ void UART_Config()
 
 void ADC_Init()
 {
-//	RCC_ADC_Clk_EN(ADC_12_ClkEN);
-//	ADC_Calibration(ADC1);
-//	ADC_SoftTrigConfig(ADC1);
-//	ADC_ChannelSet_SampleTime(ADC1, 1, ADC_SMPL_TIME_7_5);
-//	ADC_ChannelSet_SampleTime(ADC1, 2, ADC_SMPL_TIME_7_5);
-//	ADC_Enable(ADC1);
+	RCC_ADC_Clk_EN(ADC_12_ClkEN);
+
+	ADC_Calibration(ADC1);
+	ADC_SoftTrigConfig(ADC1);
+	ADC_Enable(ADC1);
 
 
-    RCC_ADC_Clk_EN(ADC_12_ClkEN);
-    ADC_Calibration(ADC1);
-    ADC_SoftTrigConfig(ADC1);
-    ADC_ChannelSeqLen(ADC1, ADC_DMA_BUFF_SIZE);
-    for (uint8_t i = 1; i <= ADC_DMA_BUFF_SIZE; ++i)
-        ADC_ChannelSet_Sequence(ADC1, 4, i);
-    ADC_ChannelSet_SampleTime(ADC1, 4, ADC_SMPL_TIME_7_5);
-    ADC_DMAConfig(ADC1);
-    ADC_Enable(ADC1);
 }
 //------------------------------------------------------------------------------
 

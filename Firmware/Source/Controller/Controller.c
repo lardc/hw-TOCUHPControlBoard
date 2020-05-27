@@ -8,7 +8,7 @@
 // Includes
 #include "Board.h"
 #include "stm32f3xx.h"   // перестал видится в один прекрасный момент
-
+#include "Delay.h"
 #include "SysConfig.h"
 #include "stdinc.h"
 #include "DataTable.h"
@@ -133,7 +133,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 					LL_LedPower(ENABLE);
 					LL_PowerRelay(ENABLE);
 					SUB_State = SS_WaitVoltage;
-					CONTROL_SetVoltageCapasitor();
+					CONTROL_BatteryVoltageMonitor();
 					if(DataTable[REG_FAN_STATE])
 					{
 						LL_ExternalFan(ENABLE);
@@ -166,7 +166,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			{
 				CONTROL_SetDeviceState(DS_Config);
 				SUB_State == SS_WaitTransistor;
-				CONTROL_TransistorOn(TransistorTableMask(DataTable[REG_CURRENT_VALUE]));
+				//CONTROL_TransistorOn(TransistorTableMask(DataTable[REG_CURRENT_VALUE]));
 				SUB_State == SS_TransistorReady;
 
 
@@ -222,22 +222,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 		}
 			break;
 
-		case ACT_DBG_RCK:
-		{
-			LL_RCK(ENABLE);
-			Delay_mS(1000);
-			LL_RCK(DISABLE);
-		}
-			break;
-
-		case ACT_DBG_SRCK:
-		{
-			LL_SRCK(ENABLE);
-			Delay_mS(1000);
-			LL_SRCK(DISABLE);
-		}
-			break;
-
 		case ACT_DBG_LEDPWR:
 		{
 			LL_LedPower(ENABLE);
@@ -262,9 +246,15 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 		}
 			break;
 
+		case ACT_DBG_GATE_CONTROL:
+		{
+			CONTROL_GateSendRaw(DataTable[REG_DBG_GATE_DATA]);
+		}
+			break;
+
 		case ACT_DBG_VSO:
 		{
-			DataTable[REG_DBG_VSO_VALUE] = MEASURE_BatteryVoltage();
+			DataTable[REG_DBG_VSO_VALUE] = (float)(MEASURE_BatteryVoltage(BAT_ADC1_CH, REG_V_BAT_OFFSET, REG_V_BAT_K));
 		}
 			break;
 
@@ -277,13 +267,33 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 }
 //-----------------------------------------------
 
+void CONTROL_GateSendRaw(uint16_t Data)
+{
+
+	for (int cnt = 0; cnt < 16; cnt++)
+	{
+		LL_GateRawData((Data >> cnt) & 1);
+		DELAY_US(1);
+		LL_GateRawSRCK(TRUE);
+		DELAY_US(1);
+		LL_GateRawSRCK(FALSE);
+	}
+
+	LL_GateRawRCK(TRUE);
+	DELAY_US(1);
+	LL_GateRawRCK(FALSE);
+	LL_GateRawData(FALSE);
+
+}
+
 void CONTROL_BatteryVoltageMonitor()
 {
 	float BatteryVoltageNow;
 
+
 	if((CONTROL_State == DS_Ready) || (CONTROL_State == DS_Config) || (CONTROL_State == DS_InProcess))
 	{
-		BatteryVoltage = MEASURE_BatteryVoltage();
+		float BatteryVoltage = MEASURE_BatteryVoltage(BAT_ADC1_CH, REG_V_BAT_OFFSET, REG_V_BAT_K);
 		DataTable[REG_DBG_VSO_VALUE] = BatteryVoltage;
 
 		float MaxVoltage = DataTable[REG_VOLTAGE_VALUE] + V_BAT_THRESHOLD_MAX * DataTable[REG_VOLTAGE_VALUE];
@@ -426,14 +436,14 @@ Int16U TransistorTableMask(Int16U SetCurent)
 }
 //-----------------------------------------------
 
-void CONTROL_TransistorOn(Int16U Mask)
-{
+//void CONTROL_TransistorOn(Int16U Mask)
+//{
 	// >8 бит, то надо разделить
 //	Int8U HighByte = (Int8U) (CLEAR_BIT(Mask, BIT8 && BIT9&& BIT10));
 //	Int8U LowByte = (Int8U) (Mask >> 8);
 
 	// еще передать данные по SPI
-	LL_SRCK(ENABLE);
-	LL_SRCK(DISABLE);
-}
+	//LL_SRCK(ENABLE);
+	//LL_SRCK(DISABLE);
+//}
 //-----------------------------------------------

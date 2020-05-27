@@ -53,13 +53,13 @@ void IO_Config() {
 	RCC_GPIO_Clk_EN(PORTB);
 
 	//Выходы
-	GPIO_Config(GPIOB, Pin_15, Output, PushPull, HighSpeed, NoPull); //PB15(LED)
+	GPIO_Config(GPIOB, Pin_4, Output, PushPull, HighSpeed, NoPull); //PB4(LED)
 
-	GPIO_Config(GPIOA, Pin_4, Output, PushPull, HighSpeed, NoPull); //PA4(PULSE)
-	GPIO_Bit_Rst(GPIOA, Pin_4);
+	//GPIO_Config(GPIOA, Pin_4, Output, PushPull, HighSpeed, NoPull); //PA4(PULSE)
+	//GPIO_Bit_Rst(GPIOA, Pin_4);
 
-	GPIO_Config(GPIOB, Pin_3, Output, OpenDrain, HighSpeed, Pull_Up); // PB3 (SYNC_DRIVE)
-	GPIO_Bit_Rst(GPIOB, Pin_3);
+	//GPIO_Config(GPIOB, Pin_3, Output, OpenDrain, HighSpeed, Pull_Up); // PB3 (SYNC_DRIVE)
+	//GPIO_Bit_Rst(GPIOB, Pin_3);
 	//
 
 	//Альтернативные функции портов

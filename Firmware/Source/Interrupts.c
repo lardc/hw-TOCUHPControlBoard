@@ -60,21 +60,18 @@ void USB_LP_CAN_RX0_IRQHandler()
 
 void TIM7_IRQHandler()
 {
+	static uint16_t LED_BlinkTimeCounter = 0;
+
 	if (TIM_StatusCheck(TIM7))
-	{
-		CONTROL_TimeCounter++;
-
-		if (CONTROL_TimeCounter > (LED_BlinkTimeCounter + LED_BLINK_TIME))
 		{
-			//Моргаем светодиодом
-			if (!LL_IsBlinkLED())
-				LL_BlinkLED(TRUE);
-			else
-				LL_BlinkLED(FALSE);
+		CONTROL_TimeCounter++;
+			if (++LED_BlinkTimeCounter > TIME_LED_BLINK)
+			{
+				LL_ToggleBoardLED();
+				LED_BlinkTimeCounter = 0;
+			}
 
-			LED_BlinkTimeCounter = CONTROL_TimeCounter;
+			TIM_StatusClear(TIM7);
 		}
-		TIM_StatusClear(TIM7);
-	}
 }
 //-----------------------------------------

@@ -22,7 +22,7 @@
 //#define ACT_DBG_COMM					10	// Проверка выхода COMM
 //#define ACT_DBG_LAMP					11	// Проверка выхода LAMP
 //#define ACT_DBG_FAN						12	// Проверка выхода FAN
-//#define ACT_DBG_GATE_CONTROL			13	// Проверка управления GATE
+#define ACT_DBG_GATE_CONTROL			13	// Проверка управления GATE
 //#define ACT_DBG_SYNC					14	// Проверка выхода синхронизации
 //#define ACT_DBG_VSO						15	// Измерение напряжения заряда в регистр REG_DBG_VSO_VALUE
 //#define ACT_DBG_I_DUT					16	// Измерение тока DUT в регистр REG_DBG_I_DUT_VALUE
@@ -51,6 +51,8 @@
 //#define REG_P1_I_DUT					6	// Коэффициент P1 измеренного значения тока (х1000)
 //#define REG_P2_I_DUT					7	// Коэффициент P2 измеренного значения тока (x1e6)
 // 8 - 11
+#define REG_V_BAT_OFFSET				10	// Смещение оцифрованного напряжения батареи 1 (в тиках)
+#define REG_V_BAT_K						11	// Коэффициент пересчёта напряжения АЦП (в мВ) в напряжение батареи 1 (в В) х1000
 #define REG_VOLTAGE_GAIN				12	// Коэффициент деления аналогового тракта измерения напряжения (x10)
 #define REG_P0_U_VSO					13	// Коэффициент P0 измеренного значения напряжения заряда батарей (в В)
 #define REG_P1_U_VSO					14	// Коэффициент P1 измеренного значения напряжения заряда батарей (x1000)
@@ -67,7 +69,7 @@
 
 
 //
-//#define REG_DBG_TOCU_DATA				150	// Сырое значение для отправки в TOCU
+#define REG_DBG_GATE_DATA				150	// Сырое значение для отправки в TOCU
 
 // Регистры только чтение
 #define REG_DEV_STATE					192	// Регистр состояния
