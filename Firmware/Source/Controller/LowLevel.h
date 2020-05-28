@@ -15,5 +15,6 @@ void LL_PSBoardOutput(bool State);
 void LL_SoftSpiSRCK(bool State);
 void LL_SoftSpiRCK(bool State);
 void LL_SoftSpiData(bool State);
+void LL_WriteToGateRegister(uint16_t Data);
 
 #endif //__LOWLEVEL_H
