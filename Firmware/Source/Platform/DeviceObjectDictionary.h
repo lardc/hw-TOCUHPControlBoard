@@ -14,10 +14,9 @@
 #define ACT_DBG_CHARGE					11	// Проверка выхода реле заряда/разряда конденстаторов
 #define ACT_DBG_RCK						12	// Проверка выхода RCK
 #define ACT_DBG_SRCK					13	// Проверка выхода RCK
-#define ACT_DBG_LEDPWR					14	// Проверка выхода индикатора 24 В
-#define ACT_DBG_RELAYPWR				15	// Проверка выхода силового реле
-#define ACT_DBG_PSBOARD					16	// Проверка выхода сигнала для PSBOARD
-#define ACT_DBG_VSO						17	// Измерение напряжения на батарее
+#define ACT_DBG_EXT_LED					14	// Проверка выхода индикатора 24 В
+#define ACT_DBG_MW_RELAY				15	// Проверка выхода силового реле
+#define ACT_DBG_PSBOARD_SWITCH					16	// Проверка выхода сигнала для PSBOARD
 
 //#define ACT_DBG_COMM					10	// Проверка выхода COMM
 //#define ACT_DBG_LAMP					11	// Проверка выхода LAMP
@@ -58,6 +57,8 @@
 #define REG_P1_U_VSO					14	// Коэффициент P1 измеренного значения напряжения заряда батарей (x1000)
 #define REG_P2_U_VSO					15	// Коэффициент P1 измеренного значения напряжения заряда батарей (x1е6)
 // 16 - 29
+#define REG_VOLTAGE_ERROR_LIMIT			20
+//
 #define REG_VSO_MEAS_OFFSET				30	// Офсет на входе АЦП при измерении Vso [bit]
 //#define REG_I_MEAS_OFFSET				31	// Офсет на входе АЦП при измерении I [bit]
 // 32 - 126
@@ -65,7 +66,7 @@
 
 // Несохраняемы регистры чтения-записи
 #define REG_CURRENT_VALUE				128	// Значение задания тока [А]
-#define REG_VOLTAGE_VALUE				129	// Значение задания напряжения [В]
+#define REG_VOLTAGE_SETPOINT				129	// Значение задания напряжения [В]
 
 
 //
@@ -79,7 +80,7 @@
 #define REG_PROBLEM						196	// Регистр Problem
 
 //
-#define REG_DBG_VSO_VALUE				200	// Напряжение на батарее (в В)
+#define REG_ACTUAL_BAT_VOLTAGE					200	// Напряжение на батарее (в В)
 //#define REG_DBG_I_DUT_VALUE				201	// Ток на DUT (в А)
 #define REG_DBG_PRE_I_DUT_VALUE			202	// Предварительный ток на DUT (в А)
 #define REG_DBG_ADC_RAW					203	// Измеренные сырые значения по каналу напряжения и каналу тока (в тиках)
@@ -105,7 +106,7 @@
 //  Fault and disable codes
 // 
 #define DF_NONE							0
-//#define DF_BATTERY						1	// Проблема заряда батареи
+#define DF_BATTERY						1	// Проблема заряда батареи
 
 // Problem
 //
@@ -120,7 +121,6 @@
 //  Warning
 // 
 #define WARNING_NONE					0
-//#define WARNING_I_OUT_OF_RANGE			1	// Измеренное значение тока вне диапазона
 
 //  User Errors
 // 
@@ -133,18 +133,5 @@
 //  Password to unlock non-volatile area for write
 // 
 #define ENABLE_LOCKING					FALSE
-
-
-typedef enum __DeviceState
-{
-	// Основные состояния
-	DS_None							= 0,	// Блок в неопределенном состоянии
-	DS_Fault						= 1,	// Блок в состоянии Fault
-	DS_Disabled						= 2,	// Блок в состоянии Disabled
-	DS_Config						= 3,	// Блок в процессе установки напряжения
-	DS_Ready						= 4,	// Блок в состоянии готовности
-	DS_InProcess					= 5,	// Блок в процессе формирования импульса
-} DeviceState;
-
 
 #endif //  __DEV_OBJ_DIC_H

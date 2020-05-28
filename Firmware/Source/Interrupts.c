@@ -24,7 +24,7 @@ void EXTI3_IRQnHandler()
 	EXTI_FlagReset(EXTI_3);
 
 	// замкнуть транзисторы на время
-	CONTROL_SetDeviceState(DS_Config);
+	//CONTROL_SetDeviceState(DS_Config);
 }
 //-----------------------------------------
 
