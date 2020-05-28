@@ -11,9 +11,7 @@ void IO_Config();
 void CAN_Config();
 void UART_Config();
 void ADC_Init();
-void Timer3_Config();
 void Timer7_Config();
-void Timer15_Config();
 void WatchDog_Config();
 
 #endif //__INITCONFIG_H

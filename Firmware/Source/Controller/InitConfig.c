@@ -1,4 +1,5 @@
-#include <InitConfig.h>
+#include "InitConfig.h"
+#include "Board.h"
 
 // Functions
 //
@@ -6,68 +7,46 @@ Boolean SysClk_Config()
 {
 	return RCC_PLL_HSE_Config(QUARTZ_FREQUENCY, PREDIV_4, PLL_14);
 }
-//------------------------------------------------------------------------------
+//------------------------------------------------
 
 void EI_Config()
 {
-
-    EXTI_Config(EXTI_PA, EXTI_8, RISE_TRIG, 0);
-    EXTI_EnableInterrupt(EXTI3_IRQn, 0, true);
-
+	EXTI_Config(EXTI_PA, EXTI_8, RISE_TRIG, 0);
+	EXTI_EnableInterrupt(EXTI3_IRQn, 0, true);
 }
-//------------------------------------------------------------------------------
+//------------------------------------------------
 
 void IO_Config()
 {
 	// Включение тактирования портов
 	RCC_GPIO_Clk_EN(PORTA);
 	RCC_GPIO_Clk_EN(PORTB);
-
+	
+	// Аналаговые входы
 	GPIO_Config(GPIOA, Pin_3, Analog, NoPull, HighSpeed, NoPull);
-
+	
 	// Цифровые входы
 	//PA8 - SYNC_LINE
 	GPIO_Config(GPIOA, Pin_8, Input, NoPull, HighSpeed, NoPull);
-
+	
 	// Выходы
-	// PA4 - RCK
-	GPIO_Config(GPIOA, Pin_4, Output, PushPull, HighSpeed, NoPull);
-
-	// PA5 - SRCK
-	GPIO_Config(GPIOA, Pin_5, Output, PushPull, HighSpeed, NoPull);
-
-	//PA7 - DATA
-	GPIO_Config(GPIOA, Pin_7, Output, PushPull, HighSpeed, NoPull);
-
-	// PB0 - FAN
-	GPIO_Config(GPIOB, Pin_0, Output, PushPull, HighSpeed, NoPull);
-
-	// PB1 - LED_24V
-	GPIO_Config(GPIOB, Pin_1, Output, PushPull, HighSpeed, NoPull);
-
-	// PB2 - BAT_CHARGE
-	GPIO_Config(GPIOB, Pin_2, Output, PushPull, HighSpeed, NoPull);
-
-	// PB4 - LED
-	GPIO_Config(GPIOB, Pin_4, Output, PushPull, HighSpeed, NoPull);
-
-	// PB10 - PS_CTRL
-	GPIO_Config(GPIOB, Pin_10, Output, PushPull, HighSpeed, NoPull);
-
-	// PB11 - Meanwell_CTRL
-	GPIO_Config(GPIOB, Pin_11, Output, PushPull, HighSpeed, NoPull);
-
+	GPIO_InitPushPullOutput(GPIO_RCK);
+	GPIO_InitPushPullOutput(GPIO_SRCK);
+	GPIO_InitPushPullOutput(GPIO_DATA);
+	GPIO_InitPushPullOutput(GPIO_FAN);
+	GPIO_InitPushPullOutput(GPIO_LED);
+	GPIO_InitPushPullOutput(GPIO_LED_EXT);
+	GPIO_InitPushPullOutput(GPIO_BAT_CHARGE);
+	GPIO_InitPushPullOutput(GPIO_HVPS_CTRL);
+	GPIO_InitPushPullOutput(GPIO_MW_CTRL);
+	
 	// Альтернативные функции
-	GPIO_Config(GPIOA, Pin_11, AltFn, PushPull, HighSpeed, NoPull); // PA11 (CAN RX)
-	GPIO_AltFn(GPIOA, Pin_11, AltFn_9);
-	GPIO_Config(GPIOA, Pin_12, AltFn, PushPull, HighSpeed, NoPull); // PA12 (CAN TX)
-	GPIO_AltFn(GPIOA, Pin_12, AltFn_9);
-	GPIO_Config(GPIOA, Pin_9, AltFn, PushPull, HighSpeed, NoPull); // PA9(USART1 TX)
-	GPIO_AltFn(GPIOA, Pin_9, AltFn_7);
-	GPIO_Config(GPIOA, Pin_10, AltFn, PushPull, HighSpeed, NoPull); // PA10(USART1 RX)
-	GPIO_AltFn(GPIOA, Pin_10, AltFn_7);
+	GPIO_InitAltFunction(GPIO_ALT_CAN_RX, AltFn_9);
+	GPIO_InitAltFunction(GPIO_ALT_CAN_TX, AltFn_9);
+	GPIO_InitAltFunction(GPIO_ALT_UART_RX, AltFn_7);
+	GPIO_InitAltFunction(GPIO_ALT_UART_TX, AltFn_7);
 }
-//------------------------------------------------------------------------------
+//------------------------------------------------
 
 void CAN_Config()
 {
@@ -76,26 +55,24 @@ void CAN_Config()
 	NCAN_FIFOInterrupt(TRUE);
 	NCAN_FilterInit(0, 0, 0); // Фильтр 0 пропускает все сообщения
 }
-//------------------------------------------------------------------------------
+//------------------------------------------------
 
 void UART_Config()
 {
 	USART_Init(USART1, SYSCLK, USART_BAUDRATE);
 	USART_Recieve_Interupt(USART1, 0, true);
 }
-//------------------------------------------------------------------------------
+//------------------------------------------------
 
 void ADC_Init()
 {
 	RCC_ADC_Clk_EN(ADC_12_ClkEN);
-
+	
 	ADC_Calibration(ADC1);
 	ADC_SoftTrigConfig(ADC1);
 	ADC_Enable(ADC1);
-
-
 }
-//------------------------------------------------------------------------------
+//------------------------------------------------
 
 void Timer7_Config()
 {
@@ -104,20 +81,11 @@ void Timer7_Config()
 	TIM_Interupt(TIM7, 0, true);
 	TIM_Start(TIM7);
 }
-
-void Timer15_Config()
-{
-    TIM_Clock_En(TIM_15);
-    TIM_Config(TIM15, SYSCLK, TIMER15_uS);
-    TIM_Interupt(TIM15, TIM15_PRIORITY, true);
-    TIM_MasterMode(TIM15, MMS_UPDATE);
-}
-//------------------------------------------------------------------------------
+//------------------------------------------------
 
 void WatchDog_Config()
 {
 	IWDG_Config();
 	IWDG_ConfigureFastUpdate();
 }
-//------------------------------------------------------------------------------
-
+//------------------------------------------------

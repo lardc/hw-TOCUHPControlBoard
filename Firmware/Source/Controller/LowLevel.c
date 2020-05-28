@@ -1,68 +1,60 @@
 // Header
 #include "LowLevel.h"
+// Include
+#include "Board.h"
 
 // Functions
 //
-// LED on board
 void LL_ToggleBoardLED()
 {
 	GPIO_Bit_Toggle(GPIOB, Pin_4);
 }
+//-----------------------------
 
-// Unit cooler
-void LL_ExternalFan(bool State)
+void LL_Fan(bool State)
 {
-	State ? GPIO_Bit_Set(GPIOB, Pin_0) : GPIO_Bit_Rst(GPIOB, Pin_0);
+	GPIO_SetState(GPIO_FAN, State);
 }
 //-----------------------------
 
-// Connect resistor to capasitors to dischargee him else charge
-void LL_CapChargeDischarge(bool State)
+void LL_BatteryDischarge(bool State)
 {
-	State ? GPIO_Bit_Set(GPIOB, Pin_2) : GPIO_Bit_Rst(GPIOB, Pin_2);
+	GPIO_SetState(GPIO_BAT_CHARGE, !State);
 }
 //-----------------------------
 
-// Led 24 V
-void LL_LedPower(bool State)
+void LL_ExternalLED(bool State)
 {
-	State ? GPIO_Bit_Set(GPIOB, Pin_1) : GPIO_Bit_Rst(GPIOB, Pin_1);
+	GPIO_SetState(GPIO_LED_EXT, State);
 }
 //-----------------------------
 
-// Power Relay
-void LL_PowerRelay(bool State)
+void LL_MeanWellRelay(bool State)
 {
-	State ? GPIO_Bit_Set(GPIOB, Pin_11) : GPIO_Bit_Rst(GPIOB, Pin_11);
+	GPIO_SetState(GPIO_MW_CTRL, State);
 }
 //-----------------------------
 
-// PSBoard clock
-void LL_PSBoard(bool State)
+void LL_PSBoardOutput(bool State)
 {
-	State ? GPIO_Bit_Set(GPIOB, Pin_10) : GPIO_Bit_Rst(GPIOB, Pin_10);
+	GPIO_SetState(GPIO_HVPS_CTRL, State);
 }
 //-----------------------------
 
-// Порты GateRaw SerialInterface
-
-// SRCK
-void LL_GateRawSRCK(bool State)
+void LL_SoftSpiSRCK(bool State)
 {
-	State ? GPIO_Bit_Set(GPIOA, Pin_5) : GPIO_Bit_Rst(GPIOA, Pin_5);
+	GPIO_SetState(GPIO_SRCK, State);
 }
 //-----------------------------
 
-// RCK
-void LL_GateRawRCK(bool State)
+void LL_SoftSpiRCK(bool State)
 {
-	State ? GPIO_Bit_Set(GPIOA, Pin_4) : GPIO_Bit_Rst(GPIOA, Pin_4);
+	GPIO_SetState(GPIO_RCK, State);
 }
 //-----------------------------
 
-// DATA
-void LL_GateRawData(bool State)
+void LL_SoftSpiData(bool State)
 {
-	State ? GPIO_Bit_Set(GPIOA, Pin_7) : GPIO_Bit_Rst(GPIOA, Pin_7);
+	GPIO_SetState(GPIO_DATA, State);
 }
 //-----------------------------
