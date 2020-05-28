@@ -64,7 +64,7 @@ void LL_WriteToGateRegister(uint16_t Data)
 {
 	for(uint8_t i = 0; i < 16; ++i)
 	{
-		LL_SoftSpiData((Data >> cnt) & 0x1);
+		LL_SoftSpiData((Data >> i) & 0x1);
 		DELAY_US(1);
 		LL_SoftSpiSRCK(TRUE);
 		DELAY_US(1);
