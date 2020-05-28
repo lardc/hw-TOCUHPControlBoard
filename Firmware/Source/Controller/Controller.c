@@ -16,45 +16,36 @@
 #include "InitConfig.h"
 #include "Measurement.h"
 
+// Macro
+//
+#define ABS(a)	(((a) < 0) ? -(a) : (a))
+
 // Types
 //
 typedef void (*FUNC_AsyncDelegate)();
-//
-// Вспомогательные состояния
-typedef enum __SubState
-{
-	SS_None = 0,
-	SS_WaitVoltage = 1,
-	SS_VoltageReady = 2,
-	SS_WaitTransistor = 2,
-	SS_TransistorReady = 2,
-} SubState;
 
 // Variables
 //
 volatile DeviceState CONTROL_State = DS_None;
-volatile SubState SUB_State = SS_None;
 static Boolean CycleActive = false;
-Int16U TransistorTableMask(Int16U SetCurent);
-//
+static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
+
 volatile Int64U CONTROL_TimeCounter = 0;
-//static Int64U CONTROL_TimeCounterDelay = 0;
-//static Int64U CONTROL_TimeFanLastTurnOn = 0;
-//static Int64U CONTROL_TimeIdleSendTOCU = 0;
+static Int64U CONTROL_ChargeTimeout = 0;
 
 // Forward functions
 //
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError);
 void CONTROL_SetDeviceState(DeviceState NewState);
-void CONTROL_Idle();
-void CONTROL_Init();
-void CONTROL_BatteryVoltageMonitor();
+void CONTROL_BatteryChargeLogic();
 void Delay_mS(uint32_t Delay);
 void CONTROL_SwitchToFault(Int16U Reason);
 void CONTROL_ResetToDefaults();
 void CONTROL_WatchDogUpdate();
 void CONTROL_SetVoltageCapasitor();
 void CONTROL_TransistorOn(Int16U Mask);
+
+void CONTROL_SampleBatteryVoltage();
 
 // Functions
 //
@@ -97,8 +88,9 @@ void CONTROL_Idle()
 {
 	DEVPROFILE_ProcessRequests();
 	
+	CONTROL_SampleBatteryVoltage();
+	CONTROL_BatteryChargeLogic();
 	CONTROL_WatchDogUpdate();
-	CONTROL_BatteryVoltageMonitor();
 }
 //-----------------------------------------------
 
@@ -110,62 +102,28 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 	{
 		case ACT_ENABLE_POWER:
 			{
-				if((CONTROL_State == DS_None) || (CONTROL_State == DS_Config) || (CONTROL_State == DS_Ready))
+				if(CONTROL_State == DS_None)
 				{
-					if(CONTROL_State == DS_None)
-					{
-						CONTROL_SetDeviceState(DS_Config);
-						LL_LedPower(ENABLE);
-						LL_PowerRelay(ENABLE);
-						SUB_State = SS_WaitVoltage;
-						CONTROL_BatteryVoltageMonitor();
-						if(DataTable[REG_FAN_STATE])
-						{
-							LL_ExternalFan(ENABLE);
-						}
-					}
+					TargetBatteryVoltage = DataTable[REG_VOLTAGE_SETPOINT];
+					LL_MeanWellRelay(true);
+
+					CONTROL_SetDeviceState(DS_InProcess);
 				}
-				else *pUserError = ERR_OPERATION_BLOCKED;
+				else if (CONTROL_State != DS_Ready || CONTROL_State != DS_InProcess)
+					*pUserError = ERR_OPERATION_BLOCKED;
 			}
 			break;
 			
 		case ACT_DISABLE_POWER:
 			{
-				if((CONTROL_State == DS_None) || (CONTROL_State == DS_Config) || (CONTROL_State == DS_Ready))
+				if(CONTROL_State == DS_Ready || CONTROL_State == DS_InProcess)
 				{
-					LL_PSBoard(DISABLE);
-					LL_PowerRelay(DISABLE);
-					LL_CapChargeDischarge(DISCHARGE);
-					LL_ExternalFan(DISABLE);
-					LL_LedPower(DISABLE);
-					//
+					// Reset HW to default
+
 					CONTROL_SetDeviceState(DS_None);
 				}
-				else *pUserError = ERR_OPERATION_BLOCKED;
-			}
-			break;
-			
-		case ACT_PULSE_CONFIG:
-			{
-				if((CONTROL_State == DS_Ready) || (CONTROL_State == DS_Config))
-				{
-					CONTROL_SetDeviceState(DS_Config);
-					SUB_State == SS_WaitTransistor;
-					//CONTROL_TransistorOn(TransistorTableMask(DataTable[REG_CURRENT_VALUE]));
-					SUB_State == SS_TransistorReady;
-					
-				}
-				else *pUserError = ERR_OPERATION_BLOCKED;
-			}
-			break;
-			
-		case ACT_PULSE_START:
-			{
-				if(CONTROL_State == DS_Ready)
-				{
-					CONTROL_SetDeviceState(DS_InProcess);
-				}
-				else *pUserError = ERR_OPERATION_BLOCKED;
+				else if (CONTROL_State != DS_None)
+					*pUserError = ERR_OPERATION_BLOCKED;
 			}
 			break;
 			
@@ -175,7 +133,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 				{
 					CONTROL_ResetToDefaults();
 					CONTROL_SetDeviceState(DS_None);
-					SUB_State = SS_None;
 				}
 			}
 			break;
@@ -183,7 +140,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 		case ACT_WARNING_CLEAR:
 			DataTable[REG_WARNING] = 0;
 			break;
-
+			
 			// Блок отладочных функция
 			
 		case ACT_DBG_FAN:
@@ -233,52 +190,52 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 		default:
 			return false;
 	}
-
+	
 	return true;
 }
 //-----------------------------------------------
 
-void CONTROL_BatteryVoltageMonitor()
+void CONTROL_BatteryChargeLogic()
 {
-	float BatteryVoltageNow;
+	int16_t VoltageError = (int16_t)TargetBatteryVoltage - ActualBatteryVoltage;
+	int16_t VoltageErrorLimit = DataTable[REG_VOLTAGE_SETPOINT];
 	
-	if((CONTROL_State == DS_Ready) || (CONTROL_State == DS_Config) || (CONTROL_State == DS_InProcess))
+	// Поддержание напряжения на батарее
+	if (CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
 	{
-		float BatteryVoltage = MEASURE_BatteryVoltage(BAT_ADC1_CH, REG_V_BAT_OFFSET, REG_V_BAT_K);
-		DataTable[REG_DBG_VSO_VALUE] = BatteryVoltage;
-		
-		float MaxVoltage = DataTable[REG_VOLTAGE_VALUE] + V_BAT_THRESHOLD_MAX * DataTable[REG_VOLTAGE_VALUE];
-		float MinVoltage = DataTable[REG_VOLTAGE_VALUE] - V_BAT_THRESHOLD_MIN * DataTable[REG_VOLTAGE_VALUE];
-		
-		if((BatteryVoltageNow >= MinVoltage) && (BatteryVoltageNow <= MaxVoltage))
+		if(VoltageError > VoltageErrorLimit)
 		{
-			LL_CapChargeDischarge(CHARGE);
-			LL_PSBoard(DISABLE);
-			SUB_State = SS_VoltageReady;
+			// Зона активного заряда
+			LL_PSBoardOutput(true);
+			LL_BatteryDischarge(false);
 		}
-		else
+		else if(VoltageError < -2 * VoltageErrorLimit)
 		{
-			if(BatteryVoltageNow < MinVoltage)
-			{
-				SUB_State = SS_WaitVoltage;
-				LL_CapChargeDischarge(CHARGE);
-				LL_PSBoard(ENABLE);
-			}
-			else
-			{
-				SUB_State = SS_WaitVoltage;
-				LL_PSBoard(DISABLE);
-				LL_CapChargeDischarge(DISCHARGE);
-			}
+			// Зона активного разаряда
+			LL_PSBoardOutput(false);
+			LL_BatteryDischarge(true);
 		}
-		
+		else if(VoltageError < -VoltageErrorLimit)
+		{
+			// Зона пассивного разаряда
+			LL_PSBoardOutput(false);
+			LL_BatteryDischarge(false);
+		}
+	}
+
+	// Условие смены состояния
+	if (CONTROL_State == DS_InProcess)
+	{
+		if (ABS(VoltageError) < VoltageErrorLimit)
+			CONTROL_SetDeviceState(DS_Ready);
+		else if (CONTROL_TimeCounter > CONTROL_ChargeTimeout)
+			CONTROL_SwitchToFault(DF_BATTERY);
 	}
 }
 //-----------------------------------------------
 
 void CONTROL_SwitchToFault(Int16U Reason)
 {
-	SUB_State = SS_None;
 	CONTROL_SetDeviceState(DS_Fault);
 	DataTable[REG_FAULT_REASON] = Reason;
 }
@@ -303,5 +260,12 @@ void CONTROL_WatchDogUpdate()
 {
 	if(BOOT_LOADER_VARIABLE != BOOT_LOADER_REQUEST)
 		IWDG_Refresh();
+}
+//-----------------------------------------------
+
+void CONTROL_SampleBatteryVoltage()
+{
+	ActualBatteryVoltage = MEASURE_GetBatteryVoltage();
+	DataTable[REG_ACTUAL_BAT_VOLTAGE] = ActualBatteryVoltage;
 }
 //-----------------------------------------------
