@@ -4,16 +4,11 @@
 // Includes
 #include "Board.h"
 #include "Delay.h"
-#include "SysConfig.h"
 #include "DataTable.h"
-#include "SCCISlave.h"
 #include "DeviceProfile.h"
-#include "BCCITypes.h"
-#include "Constraints.h"
 #include "Interrupts.h"
 #include "Global.h"
 #include "LowLevel.h"
-#include "InitConfig.h"
 #include "Measurement.h"
 
 // Macro
