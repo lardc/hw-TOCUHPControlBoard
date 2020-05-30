@@ -16,5 +16,7 @@ void LL_SoftSpiSRCK(bool State);
 void LL_SoftSpiRCK(bool State);
 void LL_SoftSpiData(bool State);
 void LL_WriteToGateRegister(uint16_t Data);
+void LL_ForceSYNC(bool State);
+bool LL_GetSYNCState();
 
 #endif //__LOWLEVEL_H

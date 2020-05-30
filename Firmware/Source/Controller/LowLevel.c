@@ -20,6 +20,7 @@ void LL_Fan(bool State)
 
 void LL_BatteryDischarge(bool State)
 {
+	// Разряд происходит при низком уровне на пине
 	GPIO_SetState(GPIO_BAT_CHARGE, !State);
 }
 //-----------------------------
@@ -75,5 +76,18 @@ void LL_WriteToGateRegister(uint16_t Data)
 	DELAY_US(1);
 	LL_SoftSpiRCK(FALSE);
 	LL_SoftSpiData(FALSE);
+}
+//-----------------------------
+
+void LL_ForceSYNC(bool State)
+{
+	// Синхронизация происходит при низком уровне на пине
+	GPIO_SetState(GPIO_SYNC, !State);
+}
+//-----------------------------
+
+bool LL_GetSYNCState()
+{
+	return GPIO_GetState(GPIO_SYNC);
 }
 //-----------------------------

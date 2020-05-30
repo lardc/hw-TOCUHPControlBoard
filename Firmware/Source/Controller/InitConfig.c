@@ -25,9 +25,9 @@ void IO_Config()
 	// Аналаговые входы
 	GPIO_Config(GPIOA, Pin_3, Analog, NoPull, HighSpeed, NoPull);
 	
-	// Цифровые входы
-	//PA8 - SYNC_LINE
-	GPIO_Config(GPIOA, Pin_8, Input, NoPull, HighSpeed, NoPull);
+	// Линия синхронизации (вход - выход)
+	GPIO_Config(GPIOA, Pin_8, Output, OpenDrain, HighSpeed, NoPull);
+	GPIO_SetState(GPIO_SYNC, true);
 	
 	// Выходы
 	GPIO_InitPushPullOutput(GPIO_RCK);
