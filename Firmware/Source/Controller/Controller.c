@@ -151,7 +151,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			}
 			break;
 			
-		case ACT_DBG_CHARGE:
+		case ACT_DBG_DISCHARGE:
 			{
 				LL_BatteryDischarge(true);
 				Delay_mS(1000);
@@ -175,7 +175,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			}
 			break;
 			
-		case ACT_DBG_PSBOARD_SWITCH:
+		case ACT_DBG_PSBOARD_OUTPUT:
 			{
 				LL_PSBoardOutput(true);
 				Delay_mS(1000);
@@ -184,7 +184,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			break;
 			
 		case ACT_DBG_GATE_CONTROL:
-			LL_WriteToGateRegister(DataTable[REG_DBG_GATE_DATA]);
+			LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
 			break;
 			
 		default:
