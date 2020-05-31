@@ -1,7 +1,7 @@
 #ifndef __INITCONFIG_H
 #define __INITCONFIG_H
 
-#include "Board.h"
+#include "stdinc.h"
 
 //Functions
 //

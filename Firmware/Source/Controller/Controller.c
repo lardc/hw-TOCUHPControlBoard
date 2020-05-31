@@ -10,6 +10,7 @@
 #include "Global.h"
 #include "LowLevel.h"
 #include "Measurement.h"
+#include "SysConfig.h"
 
 // Macro
 //
