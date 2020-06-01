@@ -27,7 +27,7 @@ static Boolean CycleActive = false;
 static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 
 volatile Int64U CONTROL_TimeCounter = 0;
-static Int64U CONTROL_ChargeTimeout = 0;
+Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0;
 
 // Forward functions
 //
@@ -38,6 +38,7 @@ void Delay_mS(uint32_t Delay);
 void CONTROL_WatchDogUpdate();
 void CONTROL_StartBatteryCharge();
 void CONTROL_BatteryChargeLogic();
+void CONTROL_HandleLEDLogic();
 void CONTROL_SampleBatteryVoltage();
 void CONTROL_ResetToDefaultState();
 
@@ -95,6 +96,9 @@ void CONTROL_Idle()
 	
 	CONTROL_SampleBatteryVoltage();
 	CONTROL_BatteryChargeLogic();
+
+	CONTROL_HandleLEDLogic();
+
 	CONTROL_WatchDogUpdate();
 }
 //------------------------------------------
@@ -279,6 +283,16 @@ void CONTROL_HandleFanLogic(bool IsImpulse)
 	{
 		FanOnTimeout = 0;
 		LL_Fan(false);
+	}
+}
+//-----------------------------------------------
+
+void CONTROL_HandleLEDLogic()
+{
+	if (CONTROL_LEDTimeout && (CONTROL_TimeCounter > CONTROL_LEDTimeout))
+	{
+		CONTROL_LEDTimeout = 0;
+		LL_ExternalLED(false);
 	}
 }
 //-----------------------------------------------

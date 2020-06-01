@@ -13,8 +13,12 @@
 //
 void EXTI3_IRQnHandler()
 {
-	CONTROL_HandleFanLogic(true);
 	DataTable[REG_OP_RESULT] = OPRESULT_OK;
+
+	CONTROL_HandleFanLogic(true);
+
+	LL_ExternalLED(true);
+	CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
 
 	EXTI_FlagReset(EXTI_3);
 }
