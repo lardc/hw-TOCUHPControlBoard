@@ -14,7 +14,7 @@
 #define ACT_DBG_PSBOARD_OUTPUT			14	// Импульсное включение сигнала для PSBOARD
 #define ACT_DBG_GATE_CONTROL			15	// Запись значения в сдвиговый регистр управления затворами
 
-#define ACT_PULSE_CONFIG				100	// Конфигурация напряженя и настройка затворов транзисторов
+#define ACT_PULSE_CONFIG				100	// Конфигурация напряжения и настройка затворов транзисторов
 
 #define ACT_SAVE_TO_ROM					200	// Сохранение пользовательских данных во FLASH процессора
 #define ACT_RESTORE_FROM_ROM			201	// Восстановление данных из FLASH
@@ -28,6 +28,7 @@
 #define REG_V_BAT_OFFSET				0	// Смещение оцифрованного напряжения батареи 1 (в тиках)
 #define REG_V_BAT_K						1	// Коэффициент пересчёта напряжения АЦП (в мВ) в напряжение батареи (в В) x1000
 #define REG_VOLTAGE_ERROR_LIMIT			2	// Допустимая ошибка регулирования напряжения (в В)
+#define REG_BAT_CHARGE_TIMEOUT			3	// Таймаут выхода батареи на заданное напряжение (в мс)
 
 // Несохраняемы регистры чтения-записи
 #define REG_VOLTAGE_SETPOINT			128	// Значение задания напряжения (в В)
@@ -39,6 +40,7 @@
 #define REG_DISABLE_REASON				194	// Регистр Disable
 #define REG_WARNING						195	// Регистр Warning
 #define REG_PROBLEM						196	// Регистр Problem
+#define REG_OP_RESULT					197	// Регистр результата операции
 //
 #define REG_ACTUAL_BAT_VOLTAGE			200	// Текущее напряжение на батарее (в В)
 // -----------------------------

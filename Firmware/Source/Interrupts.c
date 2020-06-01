@@ -6,12 +6,14 @@
 #include "Board.h"
 #include "SysConfig.h"
 #include "Global.h"
+#include "DataTable.h"
+#include "DeviceObjectDictionary.h"
 
 // Functions
 //
 void EXTI3_IRQnHandler()
 {
-	// Логика обработки синхронизации
+	DataTable[REG_OP_RESULT] = OPRESULT_OK;
 	EXTI_FlagReset(EXTI_3);
 }
 //-----------------------------------------

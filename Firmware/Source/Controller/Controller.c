@@ -36,6 +36,7 @@ void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SwitchToFault(Int16U Reason);
 void Delay_mS(uint32_t Delay);
 void CONTROL_WatchDogUpdate();
+void CONTROL_StartBatteryCharge();
 void CONTROL_BatteryChargeLogic();
 void CONTROL_SampleBatteryVoltage();
 void CONTROL_ResetToDefaultState();
@@ -66,10 +67,11 @@ void CONTROL_Init()
 
 void CONTROL_ResetToDefaultState()
 {
-	DataTable[REG_FAULT_REASON] = 0;
-	DataTable[REG_DISABLE_REASON] = 0;
-	DataTable[REG_WARNING] = 0;
-	DataTable[REG_PROBLEM] = 0;
+	DataTable[REG_FAULT_REASON] = DF_NONE;
+	DataTable[REG_DISABLE_REASON] = DF_NONE;
+	DataTable[REG_WARNING] = WARNING_NONE;
+	DataTable[REG_PROBLEM] = PROBLEM_NONE;
+	DataTable[REG_OP_RESULT] = OPRESULT_NONE;
 	DataTable[REG_ACTUAL_BAT_VOLTAGE] = 0;
 	
 	DEVPROFILE_ResetScopes(0);
@@ -107,10 +109,8 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			{
 				if(CONTROL_State == DS_None)
 				{
-					TargetBatteryVoltage = DataTable[REG_VOLTAGE_SETPOINT];
 					LL_MeanWellRelay(true);
-					
-					CONTROL_SetDeviceState(DS_InProcess);
+					CONTROL_StartBatteryCharge();
 				}
 				else if(CONTROL_State != DS_Ready || CONTROL_State != DS_InProcess)
 					*pUserError = ERR_OPERATION_BLOCKED;
@@ -141,6 +141,20 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			DataTable[REG_WARNING] = 0;
 			break;
 			
+		case ACT_PULSE_CONFIG:
+			{
+				if(CONTROL_State == DS_Ready)
+				{
+					DataTable[REG_OP_RESULT] = OPRESULT_NONE;
+
+					LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+					CONTROL_StartBatteryCharge();
+				}
+				else
+					*pUserError = ERR_DEVICE_NOT_READY;
+			}
+			break;
+
 			// Блок отладочных функция
 			
 		case ACT_DBG_FAN:
@@ -192,6 +206,15 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 	}
 	
 	return true;
+}
+//------------------------------------------
+
+void CONTROL_StartBatteryCharge()
+{
+	TargetBatteryVoltage = DataTable[REG_VOLTAGE_SETPOINT];
+	CONTROL_ChargeTimeout = CONTROL_TimeCounter + DataTable[REG_BAT_CHARGE_TIMEOUT];
+
+	CONTROL_SetDeviceState(DS_InProcess);
 }
 //------------------------------------------
 
