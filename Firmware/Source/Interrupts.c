@@ -13,7 +13,9 @@
 //
 void EXTI3_IRQnHandler()
 {
+	CONTROL_HandleFanLogic(true);
 	DataTable[REG_OP_RESULT] = OPRESULT_OK;
+
 	EXTI_FlagReset(EXTI_3);
 }
 //-----------------------------------------
@@ -44,6 +46,8 @@ void TIM7_IRQHandler()
 
 	if(TIM_StatusCheck(TIM7))
 	{
+		CONTROL_HandleFanLogic(false);
+
 		CONTROL_TimeCounter++;
 		if(++LED_BlinkTimeCounter > TIME_LED_BLINK)
 		{
