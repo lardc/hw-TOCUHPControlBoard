@@ -16,9 +16,17 @@
 
 #define GAIN_VOLTAGE_DEF		1000
 
-#define VOLTAGE_ERROR_MIN		1
-#define VOLTAGE_ERROR_MAX		20
-#define VOLTAGE_ERROR_DEF		5
+#define VOLTAGE_ERROR_MIN		1		// в В
+#define VOLTAGE_ERROR_MAX		20		// в В
+#define VOLTAGE_ERROR_DEF		5		// в В
+
+#define CHARGE_TIMEOUT_MIN		1000	// в мс
+#define CHARGE_TIMEOUT_MAX		60000	// в мс
+#define CHARGE_TIMEOUT_DEF		10000	// в мс
+
+#define FAN_OPERATE_MIN			10		// в сек
+#define FAN_OPERATE_MAX			300		// в сек
+#define FAN_OPERATE_DEF			60		// в сек
 
 // Types
 typedef struct __TableItemConstraint

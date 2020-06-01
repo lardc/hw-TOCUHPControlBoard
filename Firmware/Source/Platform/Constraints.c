@@ -12,9 +12,9 @@ const TableItemConstraint NVConstraint[DATA_TABLE_NV_SIZE] =
 	{0, INT16U_MAX, 0},															// 0
 	{GAIN_COEFFICIENT_MIN, GAIN_COEFFICIENT_MAX, GAIN_VOLTAGE_DEF},				// 1
 	{VOLTAGE_ERROR_MIN, VOLTAGE_ERROR_MAX, VOLTAGE_ERROR_DEF},					// 2
-	{0, 0, 0},																	// 3
-	{0, 0, 0},																	// 4
-	{0, 0, 0},																	// 5
+	{CHARGE_TIMEOUT_MIN, CHARGE_TIMEOUT_MAX, CHARGE_TIMEOUT_DEF},				// 3
+	{FAN_OPERATE_MIN, FAN_OPERATE_MAX, FAN_OPERATE_DEF},						// 4
+	{FAN_OPERATE_MIN, FAN_OPERATE_MAX, FAN_OPERATE_DEF},						// 5
 	{0, 0, 0},																	// 6
 	{0, 0, 0},																	// 7
 	{0, 0, 0},																	// 8
