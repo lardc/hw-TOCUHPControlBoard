@@ -41,6 +41,7 @@ void CONTROL_BatteryChargeLogic();
 void CONTROL_HandleLEDLogic();
 void CONTROL_SampleBatteryVoltage();
 void CONTROL_ResetToDefaultState();
+void CONTROL_ResetHardware();
 
 // Functions
 //
@@ -78,6 +79,13 @@ void CONTROL_ResetToDefaultState()
 	DEVPROFILE_ResetScopes(0);
 	DEVPROFILE_ResetEPReadState();
 
+	CONTROL_ResetHardware();
+	CONTROL_SetDeviceState(DS_None);
+}
+//------------------------------------------
+
+void CONTROL_ResetHardware()
+{
 	LL_Fan(false);
 	LL_ExternalLED(false);
 	LL_MeanWellRelay(false);
@@ -85,8 +93,6 @@ void CONTROL_ResetToDefaultState()
 	LL_ForceSYNC(false);
 	//
 	LL_BatteryDischarge(true);
-
-	CONTROL_SetDeviceState(DS_None);
 }
 //------------------------------------------
 
@@ -299,6 +305,8 @@ void CONTROL_HandleLEDLogic()
 
 void CONTROL_SwitchToFault(Int16U Reason)
 {
+	CONTROL_ResetHardware();
+
 	CONTROL_SetDeviceState(DS_Fault);
 	DataTable[REG_FAULT_REASON] = Reason;
 }
