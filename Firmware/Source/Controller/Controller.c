@@ -35,6 +35,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError);
 void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SwitchToFault(Int16U Reason);
 void Delay_mS(uint32_t Delay);
+void Delay_us(uint32_t Delay);
 void CONTROL_WatchDogUpdate();
 void CONTROL_StartBatteryCharge();
 void CONTROL_BatteryChargeLogic();
@@ -211,6 +212,14 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
 			break;
 			
+		case ACT_DBG_GATE_EN:
+			{
+				LL_ForceSYNC(true);
+				Delay_us(100);
+				LL_ForceSYNC(false);
+			}
+			break;
+
 		default:
 			return false;
 	}
@@ -327,6 +336,18 @@ void Delay_mS(uint32_t Delay)
 }
 //------------------------------------------
 
+void Delay_us(uint32_t Delay)
+{
+	for(uint32_t i = 0; i < Delay * 7; i++)
+	{
+		asm("nop");
+		asm("nop");
+		asm("nop");
+		asm("nop");
+	}
+}
+//------------------------------------------
+
 void CONTROL_WatchDogUpdate()
 {
 	if(BOOT_LOADER_VARIABLE != BOOT_LOADER_REQUEST)
@@ -338,5 +359,12 @@ void CONTROL_SampleBatteryVoltage()
 {
 	ActualBatteryVoltage = MEASURE_GetBatteryVoltage();
 	DataTable[REG_ACTUAL_BAT_VOLTAGE] = ActualBatteryVoltage;
+}
+//------------------------------------------
+
+void CONTROL_CurrentEmergencyStop(Int16U Reason)
+{
+	LL_FlipSpiRCK();
+	CONTROL_SwitchToFault(Reason);
 }
 //------------------------------------------

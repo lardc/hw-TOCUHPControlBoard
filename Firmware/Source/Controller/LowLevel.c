@@ -63,19 +63,32 @@ void LL_SoftSpiData(bool State)
 
 void LL_WriteToGateRegister(uint16_t Data)
 {
-	for(uint8_t i = 0; i < 16; ++i)
+	LL_WriteWordToGateRegister(Data);
+
+	LL_FlipSpiRCK();
+
+	LL_WriteWordToGateRegister(0);
+}
+//-----------------------------
+
+void LL_FlipSpiRCK()
+{
+	LL_SoftSpiRCK(TRUE);
+	DELAY_US(1);
+	LL_SoftSpiRCK(FALSE);
+}
+//-----------------------------
+
+void LL_WriteWordToGateRegister(uint16_t Word)
+{
+	for(int i = 15; i >= 0; i--)
 	{
-		LL_SoftSpiData((Data >> i) & 0x1);
+		LL_SoftSpiData((Word >> i) & 0x1);
 		DELAY_US(1);
 		LL_SoftSpiSRCK(TRUE);
 		DELAY_US(1);
 		LL_SoftSpiSRCK(FALSE);
 	}
-
-	LL_SoftSpiRCK(TRUE);
-	DELAY_US(1);
-	LL_SoftSpiRCK(FALSE);
-	LL_SoftSpiData(FALSE);
 }
 //-----------------------------
 

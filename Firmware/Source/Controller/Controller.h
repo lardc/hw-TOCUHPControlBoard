@@ -22,5 +22,6 @@ extern Int64U CONTROL_LEDTimeout;
 void CONTROL_Init();
 void CONTROL_Idle();
 void CONTROL_HandleFanLogic(bool IsImpulse);
+void CONTROL_CurrentEmergencyStop(Int16U Reason);
 
 #endif // __CONTROLLER_H

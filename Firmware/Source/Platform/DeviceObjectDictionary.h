@@ -13,8 +13,10 @@
 #define ACT_DBG_MW_RELAY				13	// Импульсное включение реле питания БП MeanWell
 #define ACT_DBG_PSBOARD_OUTPUT			14	// Импульсное включение сигнала для PSBOARD
 #define ACT_DBG_GATE_CONTROL			15	// Запись значения в сдвиговый регистр управления затворами
+#define ACT_DBG_GATE_EN					16	// Включение силовых транзисторов
 
 #define ACT_PULSE_CONFIG				100	// Конфигурация напряжения и настройка затворов транзисторов
+#define ACT_SW_PULSE					101	// Программный запуск импульса тока
 
 #define ACT_SAVE_TO_ROM					200	// Сохранение пользовательских данных во FLASH процессора
 #define ACT_RESTORE_FROM_ROM			201	// Восстановление данных из FLASH
@@ -35,6 +37,9 @@
 // Несохраняемы регистры чтения-записи
 #define REG_VOLTAGE_SETPOINT			128	// Значение задания напряжения (в В)
 #define REG_GATE_REGISTER				129	// Значение-маска конфигурации затворов
+//
+#define REG_DBG							160	// Отладочный регистр
+//
 
 // Регистры только чтение
 #define REG_DEV_STATE					192	// Регистр состояния
@@ -55,6 +60,7 @@
 //  Fault and disable codes
 #define DF_NONE							0
 #define DF_BATTERY						1	// Проблема заряда батареи
+#define DF_SYNC_TOO_LONG				2	// Превышена длительность импульса синхронизации
 
 // Problem
 #define PROBLEM_NONE					0

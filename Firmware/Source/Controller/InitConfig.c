@@ -12,8 +12,8 @@ Boolean SysClk_Config()
 
 void EI_Config()
 {
-	EXTI_Config(EXTI_PA, EXTI_8, RISE_TRIG, 0);
-	EXTI_EnableInterrupt(EXTI3_IRQn, 0, true);
+	EXTI_Config(EXTI_PA, EXTI_8, BOTH_TRIG, 0);
+	EXTI_EnableInterrupt(EXTI9_5_IRQn, 0, true);
 }
 //------------------------------------------------
 
@@ -81,6 +81,15 @@ void Timer7_Config()
 	TIM_Config(TIM7, SYSCLK, TIMER7_uS);
 	TIM_Interupt(TIM7, 0, true);
 	TIM_Start(TIM7);
+}
+//------------------------------------------------
+
+void Timer3_Config()
+{
+	TIM_Clock_En(TIM_3);
+	TIM_Config(TIM3, SYSCLK, TIMER3_uS);
+	TIM_Interupt(TIM3, 0, true);
+	TIM_Stop(TIM3);
 }
 //------------------------------------------------
 

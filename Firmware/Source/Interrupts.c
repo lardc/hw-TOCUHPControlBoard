@@ -8,19 +8,44 @@
 #include "Global.h"
 #include "DataTable.h"
 #include "DeviceObjectDictionary.h"
+//
+
+// Functions prototypes
+void INT_SyncTimeoutControl(bool State);
+//
 
 // Functions
 //
-void EXTI3_IRQnHandler()
+void EXTI9_5_IRQHandler()
 {
-	DataTable[REG_OP_RESULT] = OPRESULT_OK;
+	if(LL_GetSYNCState())
+	{
+		INT_SyncTimeoutControl(false);
 
-	CONTROL_HandleFanLogic(true);
+		DataTable[REG_OP_RESULT] = OPRESULT_OK;
 
-	LL_ExternalLED(true);
-	CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
+		CONTROL_HandleFanLogic(true);
 
-	EXTI_FlagReset(EXTI_3);
+		LL_ExternalLED(true);
+		CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
+	}
+	else
+	{
+		INT_SyncTimeoutControl(true);
+	}
+
+	EXTI_FlagReset(EXTI_8);
+}
+//-----------------------------------------
+
+void TIM3_IRQHandler()
+{
+	if(TIM_StatusCheck(TIM3))
+	{
+		CONTROL_CurrentEmergencyStop(DF_SYNC_TOO_LONG);
+
+		TIM_StatusClear(TIM3);
+	}
 }
 //-----------------------------------------
 
@@ -61,5 +86,12 @@ void TIM7_IRQHandler()
 
 		TIM_StatusClear(TIM7);
 	}
+}
+//-----------------------------------------
+
+void INT_SyncTimeoutControl(bool State)
+{
+	State ? TIM_Start(TIM3) : TIM_Stop(TIM3);
+	TIM_Reset(TIM3);
 }
 //-----------------------------------------
