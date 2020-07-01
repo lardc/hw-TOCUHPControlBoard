@@ -15,7 +15,7 @@ const TableItemConstraint NVConstraint[DATA_TABLE_NV_SIZE] =
 	{CHARGE_TIMEOUT_MIN, CHARGE_TIMEOUT_MAX, CHARGE_TIMEOUT_DEF},				// 3
 	{FAN_OPERATE_MIN, FAN_OPERATE_MAX, FAN_OPERATE_DEF},						// 4
 	{FAN_OPERATE_MIN, FAN_OPERATE_MAX, FAN_OPERATE_DEF},						// 5
-	{0, 0, 0},																	// 6
+	{RECHARGE_TIMEOUT_MIN, RECHARGE_TIMEOUT_MAX, RECHARGE_TIMEOUT_DEF},			// 6
 	{0, 0, 0},																	// 7
 	{0, 0, 0},																	// 8
 	{0, 0, 0},																	// 9

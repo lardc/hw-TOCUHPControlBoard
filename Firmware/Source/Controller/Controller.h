@@ -7,16 +7,17 @@
 // Types
 typedef enum __DeviceState
 {
-	DS_None = 0,
-	DS_Fault = 1,
-	DS_Disabled = 2,
-	DS_Ready = 3,
-	DS_InProcess = 4
+	DS_None 			= 0,
+	DS_Fault 			= 1,
+	DS_Disabled 		= 2,
+	DS_Ready 			= 3,
+	DS_InProcess 		= 4
 } DeviceState;
 
 // Variables
 extern volatile Int64U CONTROL_TimeCounter;
 extern Int64U CONTROL_LEDTimeout;
+extern Int64U CONTROL_RechargeTimeout;
 
 // Functions
 void CONTROL_Init();

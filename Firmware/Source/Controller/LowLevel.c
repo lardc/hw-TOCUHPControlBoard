@@ -39,7 +39,8 @@ void LL_MeanWellRelay(bool State)
 
 void LL_PSBoardOutput(bool State)
 {
-	GPIO_SetState(GPIO_HVPS_CTRL, State);
+	// Включение питания происходит при низком уровне на пине
+	GPIO_SetState(GPIO_HVPS_CTRL, !State);
 }
 //-----------------------------
 

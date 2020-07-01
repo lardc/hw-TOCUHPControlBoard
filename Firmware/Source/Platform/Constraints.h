@@ -28,6 +28,10 @@
 #define FAN_OPERATE_MAX			300		// в сек
 #define FAN_OPERATE_DEF			60		// в сек
 
+#define RECHARGE_TIMEOUT_MIN	0		// в мс
+#define RECHARGE_TIMEOUT_MAX	100		// в мс
+#define RECHARGE_TIMEOUT_DEF	10		// в мс
+
 // Types
 typedef struct __TableItemConstraint
 {

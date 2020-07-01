@@ -27,7 +27,7 @@ static Boolean CycleActive = false;
 static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 
 volatile Int64U CONTROL_TimeCounter = 0;
-Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0;
+Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_RechargeTimeout = 0;
 
 // Forward functions
 //
@@ -166,6 +166,32 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			}
 			break;
 
+		case ACT_SW_PULSE:
+			{
+				if(CONTROL_State == DS_Ready)
+				{
+					LL_ForceSYNC(true);
+					Delay_us(100);
+					LL_ForceSYNC(false);
+				}
+				else
+					*pUserError = ERR_DEVICE_NOT_READY;
+			}
+			break;
+
+		case ACT_PSBOARD_DISABLE:
+			{
+				if(CONTROL_State == DS_Ready)
+				{
+					LL_PSBoardOutput(false);
+
+					CONTROL_RechargeTimeout = CONTROL_TimeCounter + DataTable[REG_RECHARGE_TIMEOUT];
+				}
+				else
+					*pUserError = ERR_DEVICE_NOT_READY;
+			}
+			break;
+
 			// Блок отладочных функция
 			
 		case ACT_DBG_FAN:
@@ -240,15 +266,16 @@ void CONTROL_StartBatteryCharge()
 void CONTROL_BatteryChargeLogic()
 {
 	int16_t VoltageError = (int16_t)TargetBatteryVoltage - ActualBatteryVoltage;
-	int16_t VoltageErrorLimit = DataTable[REG_VOLTAGE_SETPOINT];
+	int16_t VoltageErrorLimit = DataTable[REG_VOLTAGE_ERROR_LIMIT];
 	
 	// Поддержание напряжения на батарее
-	if(CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
+	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
+			&& (CONTROL_TimeCounter > CONTROL_RechargeTimeout))
 	{
-		if(VoltageError > VoltageErrorLimit)
+		if((VoltageError < VoltageErrorLimit) && (VoltageError > -VoltageErrorLimit))
 		{
-			// Зона активного заряда
-			LL_PSBoardOutput(true);
+			// Зона пассивного разряда
+			LL_PSBoardOutput(false);
 			LL_BatteryDischarge(false);
 		}
 		else if(VoltageError < -2 * VoltageErrorLimit)
@@ -257,10 +284,10 @@ void CONTROL_BatteryChargeLogic()
 			LL_PSBoardOutput(false);
 			LL_BatteryDischarge(true);
 		}
-		else if(VoltageError < -VoltageErrorLimit)
+		else if(VoltageError > VoltageErrorLimit)
 		{
-			// Зона пассивного разряда
-			LL_PSBoardOutput(false);
+			// Зона активного заряда
+			LL_PSBoardOutput(true);
 			LL_BatteryDischarge(false);
 		}
 	}

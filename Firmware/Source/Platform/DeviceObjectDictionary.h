@@ -17,6 +17,7 @@
 
 #define ACT_PULSE_CONFIG				100	// Конфигурация напряжения и настройка затворов транзисторов
 #define ACT_SW_PULSE					101	// Программный запуск импульса тока
+#define ACT_PSBOARD_DISABLE				102	// Выключить PsBoard перед подачей импульса
 
 #define ACT_SAVE_TO_ROM					200	// Сохранение пользовательских данных во FLASH процессора
 #define ACT_RESTORE_FROM_ROM			201	// Восстановление данных из FLASH
@@ -33,6 +34,7 @@
 #define REG_BAT_CHARGE_TIMEOUT			3	// Таймаут выхода батареи на заданное напряжение (в мс)
 #define REG_FAN_OPERATE_TIME			4	// Время работы вентилятора после импульса (в с)
 #define REG_FAN_OPERATE_PERIOD			5	// В простое вентилятор включается не реже чем (в с)
+#define REG_RECHARGE_TIMEOUT			6	// Таймаут дозаряда после импульса, мс
 
 // Несохраняемы регистры чтения-записи
 #define REG_VOLTAGE_SETPOINT			128	// Значение задания напряжения (в В)
