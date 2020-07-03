@@ -273,10 +273,7 @@ bool CONTROL_CheckGateRegisterValue()
 		CurrentPerBit = CurrentPerLSB * pow(2, i);
 
 		if ((CurrentPerBit > DataTable[REG_MAX_CURRENT_PER_BIT]) && (DataTable[REG_GATE_REGISTER] & (1 << i)))
-		{
-			DataTable[REG_DBG] = (uint16_t)CurrentPerBit;
 			return false;
-		}
 	}
 
 	return true;
