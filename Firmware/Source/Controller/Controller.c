@@ -11,6 +11,7 @@
 #include "LowLevel.h"
 #include "Measurement.h"
 #include "SysConfig.h"
+#include "math.h"
 
 // Macro
 //
@@ -43,6 +44,7 @@ void CONTROL_HandleLEDLogic();
 void CONTROL_SampleBatteryVoltage();
 void CONTROL_ResetToDefaultState();
 void CONTROL_ResetHardware();
+bool CONTROL_CheckGateRegisterValue();
 
 // Functions
 //
@@ -156,10 +158,15 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			{
 				if(CONTROL_State == DS_Ready)
 				{
-					DataTable[REG_OP_RESULT] = OPRESULT_NONE;
+					if (CONTROL_CheckGateRegisterValue())
+					{
+						DataTable[REG_OP_RESULT] = OPRESULT_NONE;
 
-					LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
-					CONTROL_StartBatteryCharge();
+						LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+						CONTROL_StartBatteryCharge();
+					}
+					else
+						CONTROL_SwitchToFault(DF_GATE_REGISTER);
 				}
 				else
 					*pUserError = ERR_DEVICE_NOT_READY;
@@ -192,7 +199,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			}
 			break;
 
-			// Блок отладочных функция
+			// Блок отладочных функций
 			
 		case ACT_DBG_FAN:
 			{
@@ -250,6 +257,25 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			return false;
 	}
 	
+	return true;
+}
+//------------------------------------------
+
+bool CONTROL_CheckGateRegisterValue()
+{
+	float CurrentPerLSB = 0;
+	float CurrentPerBit = 0;
+
+	CurrentPerLSB = (float)DataTable[REG_VOLTAGE_SETPOINT] / DataTable[REG_RESISTANCE_PER_LSB];
+
+	for (int i = 0; i <= GATE_REGISTER_RESOLUTION; i++)
+	{
+		CurrentPerBit = CurrentPerLSB * pow(2, i);
+
+		if (CurrentPerBit > DataTable[REG_MAX_CURRENT_PER_BIT])
+			return false;
+	}
+
 	return true;
 }
 //------------------------------------------

@@ -35,6 +35,8 @@
 #define REG_FAN_OPERATE_TIME			4	// Время работы вентилятора после импульса (в с)
 #define REG_FAN_OPERATE_PERIOD			5	// В простое вентилятор включается не реже чем (в с)
 #define REG_RECHARGE_TIMEOUT			6	// Таймаут дозаряда после импульса, мс
+#define REG_RESISTANCE_PER_LSB			7	// Сопротивление наименьшего значащего разряда (в Ом)
+#define REG_MAX_CURRENT_PER_BIT			8	// Максимальный ток на 1 бит (в А)
 
 // Несохраняемы регистры чтения-записи
 #define REG_VOLTAGE_SETPOINT			128	// Значение задания напряжения (в В)
@@ -63,6 +65,7 @@
 #define DF_NONE							0
 #define DF_BATTERY						1	// Проблема заряда батареи
 #define DF_SYNC_TOO_LONG				2	// Превышена длительность импульса синхронизации
+#define DF_GATE_REGISTER				3	// Некорректный код регистра затворов
 
 // Problem
 #define PROBLEM_NONE					0
