@@ -10,6 +10,10 @@
 #include "DeviceObjectDictionary.h"
 //
 
+// Defines
+#define TIMEOUT_COEF_D		60000
+//
+
 // Functions prototypes
 void INT_SyncTimeoutControl(bool State);
 //
@@ -18,6 +22,8 @@ void INT_SyncTimeoutControl(bool State);
 //
 void EXTI9_5_IRQHandler()
 {
+	float Current = 0, TimeoutCoefficient = 0;
+
 	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
 	{
 		if(LL_GetSYNCState())
@@ -34,7 +40,19 @@ void EXTI9_5_IRQHandler()
 			CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
 		}
 		else
+		{
 			INT_SyncTimeoutControl(true);
+
+			Current = (float)DataTable[REG_VOLTAGE_SETPOINT] / DataTable[REG_RESISTANCE_PER_LSB] * DataTable[REG_GATE_REGISTER];
+			TimeoutCoefficient = (float)(DataTable[REG_VOLTAGE_SETPOINT] * Current) / TIMEOUT_COEF_D;
+
+			if(TimeoutCoefficient < 1)
+				TimeoutCoefficient = 1;
+
+			CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT] * TimeoutCoefficient;
+
+			CONTROL_StartBatteryCharge();
+		}
 	}
 
 	EXTI_FlagReset(EXTI_8);

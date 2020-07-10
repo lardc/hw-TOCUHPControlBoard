@@ -44,6 +44,10 @@
 #define SYNC_WAIT_TIMEOUT_MAX		10000	// в мс
 #define SYNC_WAIT_TIMEOUT_DEF		20		// в мс
 
+#define AFTER_PULSE_TIMEOUT_MIN		500		// в мс
+#define AFTER_PULSE_TIMEOUT_MAX		30000	// в мс
+#define AFTER_PULSE_TIMEOUT_DEF		1000	// в мс
+
 // Types
 typedef struct __TableItemConstraint
 {

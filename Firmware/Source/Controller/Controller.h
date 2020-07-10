@@ -24,6 +24,7 @@ typedef enum __DeviceSubState
 extern volatile Int64U CONTROL_TimeCounter;
 extern Int64U CONTROL_LEDTimeout;
 extern Int64U CONTROL_RechargeTimeout;
+extern Int64U CONTROL_AfterPulseTimeout;
 
 // Functions
 void CONTROL_Init();
@@ -31,7 +32,9 @@ void CONTROL_Idle();
 void CONTROL_HandleFanLogic(bool IsImpulse);
 void CONTROL_CurrentEmergencyStop(Int16U Reason);
 bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState);
+void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SetDeviceSubState(DeviceSubState NewSubState);
 void CONTROL_HandleSynchronizationTimeout();
+void CONTROL_StartBatteryCharge();
 
 #endif // __CONTROLLER_H

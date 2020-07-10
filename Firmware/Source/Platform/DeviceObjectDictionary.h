@@ -38,6 +38,7 @@
 #define REG_RESISTANCE_PER_LSB			7	// Сопротивление наименьшего значащего разряда (в Ом)
 #define REG_MAX_CURRENT_PER_BIT			8	// Максимальный ток на 1 бит (в А)
 #define REG_SYNC_WAIT_TIMEOUT			9	// Таймаут ожидания импульса синхронизации, мс
+#define REG_AFTER_PULSE_TIMEOUT			10	// Таймаут после импульса, мс
 
 // Несохраняемы регистры чтения-записи
 #define REG_VOLTAGE_SETPOINT			128	// Значение задания напряжения (в В)

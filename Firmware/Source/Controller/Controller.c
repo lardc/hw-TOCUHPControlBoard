@@ -30,17 +30,15 @@ static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 
 volatile Int64U CONTROL_TimeCounter = 0;
 Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
-Int64U CONTROL_PsBoardDisableTimeout = 0;
+Int64U CONTROL_PsBoardDisableTimeout = 0, CONTROL_AfterPulseTimeout = 0;
 
 // Forward functions
 //
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError);
-void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SwitchToFault(Int16U Reason);
 void Delay_mS(uint32_t Delay);
 void Delay_us(uint32_t Delay);
 void CONTROL_WatchDogUpdate();
-void CONTROL_StartBatteryCharge();
 void CONTROL_BatteryChargeLogic();
 void CONTROL_HandleLEDLogic();
 void CONTROL_SampleBatteryVoltage();
@@ -325,7 +323,10 @@ void CONTROL_BatteryChargeLogic()
 	if(CONTROL_State == DS_InProcess)
 	{
 		if(ABS(VoltageError) < VoltageErrorLimit)
-			CONTROL_SetDeviceState(DS_Ready);
+		{
+			if(CONTROL_TimeCounter > CONTROL_AfterPulseTimeout)
+				CONTROL_SetDeviceState(DS_Ready);
+		}
 		else if(CONTROL_TimeCounter > CONTROL_ChargeTimeout)
 			CONTROL_SwitchToFault(DF_BATTERY);
 	}
