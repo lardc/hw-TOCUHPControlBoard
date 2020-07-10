@@ -40,6 +40,10 @@
 #define CURRENT_MAX_PER_BIT_MAX		100		// в А
 #define CURRENT_MAX_PER_BIT_DEF		50		// в А
 
+#define SYNC_WAIT_TIMEOUT_MIN		0		// в мс
+#define SYNC_WAIT_TIMEOUT_MAX		10000	// в мс
+#define SYNC_WAIT_TIMEOUT_DEF		20		// в мс
+
 // Types
 typedef struct __TableItemConstraint
 {

@@ -15,9 +15,9 @@
 #define ACT_DBG_GATE_CONTROL			15	// Запись значения в сдвиговый регистр управления затворами
 #define ACT_DBG_GATE_EN					16	// Включение силовых транзисторов
 
-#define ACT_PULSE_CONFIG				100	// Конфигурация напряжения и настройка затворов транзисторов
-#define ACT_SW_PULSE					101	// Программный запуск импульса тока
-#define ACT_PSBOARD_DISABLE				102	// Выключить PsBoard перед подачей импульса
+#define ACT_VOLTAGE_CONFIG				100	// Конфигурация напряжения и настройка затворов транзисторов
+#define ACT_PULSE_CONFIG				101	// Выключить PsBoard перед подачей импульса
+#define ACT_SW_PULSE					102	// Программный запуск импульса тока
 
 #define ACT_SAVE_TO_ROM					200	// Сохранение пользовательских данных во FLASH процессора
 #define ACT_RESTORE_FROM_ROM			201	// Восстановление данных из FLASH
@@ -34,9 +34,10 @@
 #define REG_BAT_CHARGE_TIMEOUT			3	// Таймаут выхода батареи на заданное напряжение (в мс)
 #define REG_FAN_OPERATE_TIME			4	// Время работы вентилятора после импульса (в с)
 #define REG_FAN_OPERATE_PERIOD			5	// В простое вентилятор включается не реже чем (в с)
-#define REG_RECHARGE_TIMEOUT			6	// Таймаут дозаряда после импульса, мс
+#define REG_PS_BOARD_DISABLE_TIMEOUT	6	// Таймаут дозаряда после импульса, мс
 #define REG_RESISTANCE_PER_LSB			7	// Сопротивление наименьшего значащего разряда (в Ом)
 #define REG_MAX_CURRENT_PER_BIT			8	// Максимальный ток на 1 бит (в А)
+#define REG_SYNC_WAIT_TIMEOUT			9	// Таймаут ожидания импульса синхронизации, мс
 
 // Несохраняемы регистры чтения-записи
 #define REG_VOLTAGE_SETPOINT			128	// Значение задания напряжения (в В)

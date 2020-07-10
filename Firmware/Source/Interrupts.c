@@ -18,20 +18,23 @@ void INT_SyncTimeoutControl(bool State);
 //
 void EXTI9_5_IRQHandler()
 {
-	if(LL_GetSYNCState())
+	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
 	{
-		INT_SyncTimeoutControl(false);
+		if(LL_GetSYNCState())
+		{
+			CONTROL_SetDeviceSubState(SS_None);
 
-		DataTable[REG_OP_RESULT] = OPRESULT_OK;
+			INT_SyncTimeoutControl(false);
 
-		CONTROL_HandleFanLogic(true);
+			DataTable[REG_OP_RESULT] = OPRESULT_OK;
 
-		LL_ExternalLED(true);
-		CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
-	}
-	else
-	{
-		INT_SyncTimeoutControl(true);
+			CONTROL_HandleFanLogic(true);
+			LL_ExternalLED(true);
+			LL_WriteToGateRegister(0);
+			CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
+		}
+		else
+			INT_SyncTimeoutControl(true);
 	}
 
 	EXTI_FlagReset(EXTI_8);
@@ -76,6 +79,7 @@ void TIM7_IRQHandler()
 	if(TIM_StatusCheck(TIM7))
 	{
 		CONTROL_HandleFanLogic(false);
+		CONTROL_HandleSynchronizationTimeout();
 
 		CONTROL_TimeCounter++;
 		if(++LED_BlinkTimeCounter > TIME_LED_BLINK)

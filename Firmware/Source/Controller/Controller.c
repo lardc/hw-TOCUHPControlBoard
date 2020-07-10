@@ -24,11 +24,13 @@ typedef void (*FUNC_AsyncDelegate)();
 // Variables
 //
 volatile DeviceState CONTROL_State = DS_None;
+volatile DeviceSubState CONTROL_SubState = SS_None;
 static Boolean CycleActive = false;
 static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 
 volatile Int64U CONTROL_TimeCounter = 0;
-Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_RechargeTimeout = 0;
+Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
+Int16U CONTROL_PsBoardDisableTimeout = 0;
 
 // Forward functions
 //
@@ -84,6 +86,7 @@ void CONTROL_ResetToDefaultState()
 
 	CONTROL_ResetHardware();
 	CONTROL_SetDeviceState(DS_None);
+	CONTROL_SetDeviceSubState(SS_None);
 }
 //------------------------------------------
 
@@ -96,6 +99,8 @@ void CONTROL_ResetHardware()
 	LL_ForceSYNC(false);
 	//
 	LL_BatteryDischarge(true);
+
+	LL_WriteToGateRegister(0);
 }
 //------------------------------------------
 
@@ -154,6 +159,15 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			DataTable[REG_WARNING] = 0;
 			break;
 			
+		case ACT_VOLTAGE_CONFIG:
+			{
+				if(CONTROL_State == DS_Ready)
+					CONTROL_StartBatteryCharge();
+				else
+					*pUserError = ERR_DEVICE_NOT_READY;
+			}
+			break;
+
 		case ACT_PULSE_CONFIG:
 			{
 				if(CONTROL_State == DS_Ready)
@@ -161,9 +175,11 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 					if (CONTROL_CheckGateRegisterValue())
 					{
 						DataTable[REG_OP_RESULT] = OPRESULT_NONE;
-
 						LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
-						CONTROL_StartBatteryCharge();
+						LL_PSBoardOutput(false);
+						CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
+						CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
+						CONTROL_SetDeviceSubState(SS_WaitingSync);
 					}
 					else
 						CONTROL_SwitchToFault(DF_GATE_REGISTER);
@@ -180,19 +196,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 					LL_ForceSYNC(true);
 					Delay_us(100);
 					LL_ForceSYNC(false);
-				}
-				else
-					*pUserError = ERR_DEVICE_NOT_READY;
-			}
-			break;
-
-		case ACT_PSBOARD_DISABLE:
-			{
-				if(CONTROL_State == DS_Ready)
-				{
-					LL_PSBoardOutput(false);
-
-					CONTROL_RechargeTimeout = CONTROL_TimeCounter + DataTable[REG_RECHARGE_TIMEOUT];
 				}
 				else
 					*pUserError = ERR_DEVICE_NOT_READY;
@@ -296,7 +299,7 @@ void CONTROL_BatteryChargeLogic()
 	
 	// Поддержание напряжения на батарее
 	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
-			&& (CONTROL_TimeCounter > CONTROL_RechargeTimeout))
+			&& (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
 		if((VoltageError < VoltageErrorLimit) && (VoltageError > -VoltageErrorLimit))
 		{
@@ -381,6 +384,21 @@ void CONTROL_SetDeviceState(DeviceState NewState)
 }
 //------------------------------------------
 
+void CONTROL_SetDeviceSubState(DeviceSubState NewSubState)
+{
+	CONTROL_SubState = NewSubState;
+}
+//------------------------------------------
+
+bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState)
+{
+	if(CONTROL_SubState == NewSubState)
+		return true;
+	else
+		return false;
+}
+//------------------------------------------
+
 void Delay_mS(uint32_t Delay)
 {
 	uint64_t Counter = (uint64_t)CONTROL_TimeCounter + Delay;
@@ -421,3 +439,12 @@ void CONTROL_CurrentEmergencyStop(Int16U Reason)
 	CONTROL_SwitchToFault(Reason);
 }
 //------------------------------------------
+
+void CONTROL_HandleSynchronizationTimeout()
+{
+	if(CONTROL_CheckDeviceSubState(SS_WaitingSync) && (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
+	{
+		CONTROL_SetDeviceSubState(SS_None);
+		LL_WriteToGateRegister(0);
+	}
+}

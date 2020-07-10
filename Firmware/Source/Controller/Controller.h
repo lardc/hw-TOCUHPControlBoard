@@ -14,6 +14,12 @@ typedef enum __DeviceState
 	DS_InProcess 		= 4
 } DeviceState;
 
+typedef enum __DeviceSubState
+{
+	SS_None 			= 0,
+	SS_WaitingSync 		= 1
+} DeviceSubState;
+
 // Variables
 extern volatile Int64U CONTROL_TimeCounter;
 extern Int64U CONTROL_LEDTimeout;
@@ -24,5 +30,8 @@ void CONTROL_Init();
 void CONTROL_Idle();
 void CONTROL_HandleFanLogic(bool IsImpulse);
 void CONTROL_CurrentEmergencyStop(Int16U Reason);
+bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState);
+void CONTROL_SetDeviceSubState(DeviceSubState NewSubState);
+void CONTROL_HandleSynchronizationTimeout();
 
 #endif // __CONTROLLER_H
