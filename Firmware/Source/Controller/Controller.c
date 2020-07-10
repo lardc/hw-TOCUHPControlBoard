@@ -30,7 +30,7 @@ static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 
 volatile Int64U CONTROL_TimeCounter = 0;
 Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
-Int16U CONTROL_PsBoardDisableTimeout = 0;
+Int64U CONTROL_PsBoardDisableTimeout = 0;
 
 // Forward functions
 //
