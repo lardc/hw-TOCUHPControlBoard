@@ -79,7 +79,6 @@ void USART1_IRQHandler()
 	}
 }
 //-----------------------------------------
-
 void USB_LP_CAN_RX0_IRQHandler()
 {
 	if(NCAN_RecieveCheck())
