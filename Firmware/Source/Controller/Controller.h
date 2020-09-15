@@ -25,6 +25,8 @@ extern volatile Int64U CONTROL_TimeCounter;
 extern Int64U CONTROL_LEDTimeout;
 extern Int64U CONTROL_RechargeTimeout;
 extern Int64U CONTROL_AfterPulseTimeout;
+extern Int64U CONTROL_SynchronizationTimeout;
+extern Int64U CONTROL_PsBoardDisableTimeout;
 
 // Functions
 void CONTROL_Init();

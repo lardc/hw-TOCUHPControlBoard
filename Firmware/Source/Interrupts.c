@@ -28,7 +28,8 @@ void EXTI9_5_IRQHandler()
 	{
 		if(LL_GetSYNCState())
 		{
-			CONTROL_SetDeviceSubState(SS_None);
+			CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
+			CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
 
 			INT_SyncTimeoutControl(false);
 
@@ -36,7 +37,6 @@ void EXTI9_5_IRQHandler()
 
 			CONTROL_HandleFanLogic(true);
 			LL_ExternalLED(true);
-			LL_WriteToGateRegister(0);
 			CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
 		}
 		else
