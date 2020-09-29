@@ -1,4 +1,4 @@
-// Header
+п»ї// Header
 #include "Controller.h"
 //
 // Includes
@@ -50,20 +50,20 @@ bool CONTROL_CheckGateRegisterValue();
 //
 void CONTROL_Init()
 {
-	// Переменные для конфигурации EndPoint
+	// РџРµСЂРµРјРµРЅРЅС‹Рµ РґР»СЏ РєРѕРЅС„РёРіСѓСЂР°С†РёРё EndPoint
 	Int16U EPIndexes[EP_COUNT];
 	Int16U EPSized[EP_COUNT];
 	pInt16U EPCounters[EP_COUNT];
 	pInt16U EPDatas[EP_COUNT];
 	
-	// Конфигурация сервиса работы Data-table и EPROM
+	// РљРѕРЅС„РёРіСѓСЂР°С†РёСЏ СЃРµСЂРІРёСЃР° СЂР°Р±РѕС‚С‹ Data-table Рё EPROM
 	EPROMServiceConfig EPROMService = {(FUNC_EPROM_WriteValues)&NFLASH_WriteDT, (FUNC_EPROM_ReadValues)&NFLASH_ReadDT};
-	// Инициализация data table
+	// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ data table
 	DT_Init(EPROMService, false);
-	// Инициализация device profile
+	// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ device profile
 	DEVPROFILE_Init(&CONTROL_DispatchAction, &CycleActive);
 	DEVPROFILE_InitEPService(EPIndexes, EPSized, EPCounters, EPDatas);
-	// Сброс значений
+	// РЎР±СЂРѕСЃ Р·РЅР°С‡РµРЅРёР№
 	DEVPROFILE_ResetControlSection();
 
 	CONTROL_ResetToDefaultState();
@@ -200,7 +200,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			}
 			break;
 
-			// Блок отладочных функций
+			// Р‘Р»РѕРє РѕС‚Р»Р°РґРѕС‡РЅС‹С… С„СѓРЅРєС†РёР№
 			
 		case ACT_DBG_FAN:
 			{
@@ -295,31 +295,31 @@ void CONTROL_BatteryChargeLogic()
 	int16_t VoltageError = (int16_t)TargetBatteryVoltage - ActualBatteryVoltage;
 	int16_t VoltageErrorLimit = DataTable[REG_VOLTAGE_ERROR_LIMIT];
 	
-	// Поддержание напряжения на батарее
+	// РџРѕРґРґРµСЂР¶Р°РЅРёРµ РЅР°РїСЂСЏР¶РµРЅРёСЏ РЅР° Р±Р°С‚Р°СЂРµРµ
 	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
 			&& (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
 		if((VoltageError < VoltageErrorLimit) && (VoltageError > -VoltageErrorLimit))
 		{
-			// Зона пассивного разряда
+			// Р—РѕРЅР° РїР°СЃСЃРёРІРЅРѕРіРѕ СЂР°Р·СЂСЏРґР°
 			LL_PSBoardOutput(false);
 			LL_BatteryDischarge(false);
 		}
 		else if(VoltageError < -2 * VoltageErrorLimit)
 		{
-			// Зона активного разряда
+			// Р—РѕРЅР° Р°РєС‚РёРІРЅРѕРіРѕ СЂР°Р·СЂСЏРґР°
 			LL_PSBoardOutput(false);
 			LL_BatteryDischarge(true);
 		}
 		else if(VoltageError > VoltageErrorLimit)
 		{
-			// Зона активного заряда
+			// Р—РѕРЅР° Р°РєС‚РёРІРЅРѕРіРѕ Р·Р°СЂСЏРґР°
 			LL_PSBoardOutput(true);
 			LL_BatteryDischarge(false);
 		}
 	}
 	
-	// Условие смены состояния
+	// РЈСЃР»РѕРІРёРµ СЃРјРµРЅС‹ СЃРѕСЃС‚РѕСЏРЅРёСЏ
 	if(CONTROL_State == DS_InProcess)
 	{
 		if(ABS(VoltageError) < VoltageErrorLimit)
@@ -338,11 +338,11 @@ void CONTROL_HandleFanLogic(bool IsImpulse)
 	static uint32_t IncrementCounter = 0;
 	static uint64_t FanOnTimeout = 0;
 
-	// Увеличение счётчика в простое
+	// РЈРІРµР»РёС‡РµРЅРёРµ СЃС‡С‘С‚С‡РёРєР° РІ РїСЂРѕСЃС‚РѕРµ
 	if (!IsImpulse)
 		IncrementCounter++;
 
-	// Включение вентилятора
+	// Р’РєР»СЋС‡РµРЅРёРµ РІРµРЅС‚РёР»СЏС‚РѕСЂР°
 	if ((IncrementCounter > ((uint32_t)DataTable[REG_FAN_OPERATE_PERIOD] * 1000)) || IsImpulse)
 	{
 		IncrementCounter = 0;
@@ -350,7 +350,7 @@ void CONTROL_HandleFanLogic(bool IsImpulse)
 		LL_Fan(true);
 	}
 
-	// Отключение вентилятора
+	// РћС‚РєР»СЋС‡РµРЅРёРµ РІРµРЅС‚РёР»СЏС‚РѕСЂР°
 	if (FanOnTimeout && (CONTROL_TimeCounter > FanOnTimeout))
 	{
 		FanOnTimeout = 0;

@@ -1,4 +1,4 @@
-#include "Measurement.h"
+п»ї#include "Measurement.h"
 #include "DataTable.h"
 #include "DeviceObjectDictionary.h"
 #include "Global.h"
@@ -13,7 +13,7 @@ uint16_t MEASURE_GetBatteryVoltage()
 	K = (float)DataTable[REG_V_BAT_K] / 1000;
 	V = ((float)ADC_Measure(ADC1, BAT_ADC1_CH) - Offset) * ADC_REF_VOLTAGE / ADC_RESOLUTION * K;
 
-	// Тонкая подстройка измерения напряжения
+	// РўРѕРЅРєР°СЏ РїРѕРґСЃС‚СЂРѕР№РєР° РёР·РјРµСЂРµРЅРёСЏ РЅР°РїСЂСЏР¶РµРЅРёСЏ
 	P2 = (float)((int16_t) DataTable[REG_V_BAT_P2]) / 1000000;
 	P1 = (float)DataTable[REG_V_BAT_P1] / 1000;
 	P0 = (int16_t) DataTable[REG_V_BAT_P0];

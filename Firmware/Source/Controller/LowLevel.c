@@ -1,4 +1,4 @@
-// Header
+п»ї// Header
 #include "LowLevel.h"
 // Include
 #include "Board.h"
@@ -20,7 +20,7 @@ void LL_Fan(bool State)
 
 void LL_BatteryDischarge(bool State)
 {
-	// Разряд происходит при низком уровне на пине
+	// Р Р°Р·СЂСЏРґ РїСЂРѕРёСЃС…РѕРґРёС‚ РїСЂРё РЅРёР·РєРѕРј СѓСЂРѕРІРЅРµ РЅР° РїРёРЅРµ
 	GPIO_SetState(GPIO_BAT_CHARGE, !State);
 }
 //-----------------------------
@@ -39,7 +39,7 @@ void LL_MeanWellRelay(bool State)
 
 void LL_PSBoardOutput(bool State)
 {
-	// Включение питания происходит при низком уровне на пине
+	// Р’РєР»СЋС‡РµРЅРёРµ РїРёС‚Р°РЅРёСЏ РїСЂРѕРёСЃС…РѕРґРёС‚ РїСЂРё РЅРёР·РєРѕРј СѓСЂРѕРІРЅРµ РЅР° РїРёРЅРµ
 	GPIO_SetState(GPIO_HVPS_CTRL, !State);
 }
 //-----------------------------
@@ -95,7 +95,7 @@ void LL_WriteWordToGateRegister(uint16_t Word)
 
 void LL_ForceSYNC(bool State)
 {
-	// Синхронизация происходит при низком уровне на пине
+	// РЎРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ РїСЂРѕРёСЃС…РѕРґРёС‚ РїСЂРё РЅРёР·РєРѕРј СѓСЂРѕРІРЅРµ РЅР° РїРёРЅРµ
 	GPIO_SetState(GPIO_SYNC, !State);
 }
 //-----------------------------
