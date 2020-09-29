@@ -1,4 +1,4 @@
-// Include
+﻿// Include
 #include "Interrupts.h"
 //
 #include "Controller.h"
@@ -8,19 +8,65 @@
 #include "Global.h"
 #include "DataTable.h"
 #include "DeviceObjectDictionary.h"
+//
+
+// Defines
+#define TIMEOUT_COEF_D		60000
+//
+
+// Functions prototypes
+void INT_SyncTimeoutControl(bool State);
+//
 
 // Functions
 //
-void EXTI3_IRQnHandler()
+void EXTI9_5_IRQHandler()
 {
-	DataTable[REG_OP_RESULT] = OPRESULT_OK;
+	float Current = 0, TimeoutCoefficient = 0;
 
-	CONTROL_HandleFanLogic(true);
+	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+	{
+		if(LL_GetSYNCState())
+		{
+			CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
+			CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
 
-	LL_ExternalLED(true);
-	CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
+			INT_SyncTimeoutControl(false);
 
-	EXTI_FlagReset(EXTI_3);
+			DataTable[REG_OP_RESULT] = OPRESULT_OK;
+
+			CONTROL_HandleFanLogic(true);
+			LL_ExternalLED(true);
+			CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
+		}
+		else
+		{
+			INT_SyncTimeoutControl(true);
+
+			Current = (float)DataTable[REG_VOLTAGE_SETPOINT] / DataTable[REG_RESISTANCE_PER_LSB] * DataTable[REG_GATE_REGISTER];
+			TimeoutCoefficient = (float)(DataTable[REG_VOLTAGE_SETPOINT] * Current) / TIMEOUT_COEF_D;
+
+			if(TimeoutCoefficient < 1)
+				TimeoutCoefficient = 1;
+
+			CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT] * TimeoutCoefficient;
+
+			CONTROL_StartBatteryCharge();
+		}
+	}
+
+	EXTI_FlagReset(EXTI_8);
+}
+//-----------------------------------------
+
+void TIM3_IRQHandler()
+{
+	if(TIM_StatusCheck(TIM3))
+	{
+		CONTROL_CurrentEmergencyStop(DF_SYNC_TOO_LONG);
+
+		TIM_StatusClear(TIM3);
+	}
 }
 //-----------------------------------------
 
@@ -33,7 +79,6 @@ void USART1_IRQHandler()
 	}
 }
 //-----------------------------------------
-
 void USB_LP_CAN_RX0_IRQHandler()
 {
 	if(NCAN_RecieveCheck())
@@ -51,6 +96,7 @@ void TIM7_IRQHandler()
 	if(TIM_StatusCheck(TIM7))
 	{
 		CONTROL_HandleFanLogic(false);
+		CONTROL_HandleSynchronizationTimeout();
 
 		CONTROL_TimeCounter++;
 		if(++LED_BlinkTimeCounter > TIME_LED_BLINK)
@@ -61,5 +107,12 @@ void TIM7_IRQHandler()
 
 		TIM_StatusClear(TIM7);
 	}
+}
+//-----------------------------------------
+
+void INT_SyncTimeoutControl(bool State)
+{
+	State ? TIM_Start(TIM3) : TIM_Stop(TIM3);
+	TIM_Reset(TIM3);
 }
 //-----------------------------------------

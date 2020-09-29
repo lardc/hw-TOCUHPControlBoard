@@ -1,20 +1,22 @@
-#ifndef __GLOBAL_H
+п»ї#ifndef __GLOBAL_H
 #define __GLOBAL_H
 
 // Definitions
 // 
-#define	SCCI_TIMEOUT_TICKS		1000	// Таймаут интерфейса SCCI (в мс)
-#define EP_WRITE_COUNT			0		// Количество массивов для записи
-#define EP_COUNT				0		// Количество массивов для чтения
-#define ENABLE_LOCKING			FALSE	// Защита NV регистров паролем
+#define	SCCI_TIMEOUT_TICKS			1000	// РўР°Р№РјР°СѓС‚ РёРЅС‚РµСЂС„РµР№СЃР° SCCI (РІ РјСЃ)
+#define EP_WRITE_COUNT				0		// РљРѕР»РёС‡РµСЃС‚РІРѕ РјР°СЃСЃРёРІРѕРІ РґР»СЏ Р·Р°РїРёСЃРё
+#define EP_COUNT					0		// РљРѕР»РёС‡РµСЃС‚РІРѕ РјР°СЃСЃРёРІРѕРІ РґР»СЏ С‡С‚РµРЅРёСЏ
+#define ENABLE_LOCKING				FALSE	// Р—Р°С‰РёС‚Р° NV СЂРµРіРёСЃС‚СЂРѕРІ РїР°СЂРѕР»РµРј
 
-// Временные параметры
-#define TIME_LED_BLINK			500		// Мигание светодиодом (в мс)
-#define TIME_EXT_LED_BLINK		500		// Время загорания внешнего светодиода (в мс)
+// Р’СЂРµРјРµРЅРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹
+#define TIME_LED_BLINK				500		// РњРёРіР°РЅРёРµ СЃРІРµС‚РѕРґРёРѕРґРѕРј (РІ РјСЃ)
+#define TIME_EXT_LED_BLINK			500		// Р’СЂРµРјСЏ Р·Р°РіРѕСЂР°РЅРёСЏ РІРЅРµС€РЅРµРіРѕ СЃРІРµС‚РѕРґРёРѕРґР° (РІ РјСЃ)
 
-// Параметры АЦП
-#define BAT_ADC1_CH				4		// Номер канала АЦП батареи
-#define ADC_REF_VOLTAGE			3300.0f	// Опорное напряжение (в мВ)
-#define ADC_RESOLUTION			4095	// Разрешение АЦП
+// РџР°СЂР°РјРµС‚СЂС‹ РђР¦Рџ
+#define BAT_ADC1_CH					4		// РќРѕРјРµСЂ РєР°РЅР°Р»Р° РђР¦Рџ Р±Р°С‚Р°СЂРµРё
+#define ADC_REF_VOLTAGE				3300.0f	// РћРїРѕСЂРЅРѕРµ РЅР°РїСЂСЏР¶РµРЅРёРµ (РІ РјР’)
+#define ADC_RESOLUTION				4095	// Р Р°Р·СЂРµС€РµРЅРёРµ РђР¦Рџ
+
+#define GATE_REGISTER_RESOLUTION	11		// Р Р°Р·СЂРµС€РµРЅРёРµ СЂРµРіРёСЃС‚СЂР° Р·Р°С‚РІРѕСЂРѕРІ (Р±РёС‚)
 
 #endif //  __GLOBAL_H

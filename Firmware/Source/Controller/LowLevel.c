@@ -1,4 +1,4 @@
-// Header
+п»ї// Header
 #include "LowLevel.h"
 // Include
 #include "Board.h"
@@ -20,7 +20,7 @@ void LL_Fan(bool State)
 
 void LL_BatteryDischarge(bool State)
 {
-	// Разряд происходит при низком уровне на пине
+	// Р Р°Р·СЂСЏРґ РїСЂРѕРёСЃС…РѕРґРёС‚ РїСЂРё РЅРёР·РєРѕРј СѓСЂРѕРІРЅРµ РЅР° РїРёРЅРµ
 	GPIO_SetState(GPIO_BAT_CHARGE, !State);
 }
 //-----------------------------
@@ -39,7 +39,8 @@ void LL_MeanWellRelay(bool State)
 
 void LL_PSBoardOutput(bool State)
 {
-	GPIO_SetState(GPIO_HVPS_CTRL, State);
+	// Р’РєР»СЋС‡РµРЅРёРµ РїРёС‚Р°РЅРёСЏ РїСЂРѕРёСЃС…РѕРґРёС‚ РїСЂРё РЅРёР·РєРѕРј СѓСЂРѕРІРЅРµ РЅР° РїРёРЅРµ
+	GPIO_SetState(GPIO_HVPS_CTRL, !State);
 }
 //-----------------------------
 
@@ -63,25 +64,38 @@ void LL_SoftSpiData(bool State)
 
 void LL_WriteToGateRegister(uint16_t Data)
 {
-	for(uint8_t i = 0; i < 16; ++i)
+	LL_WriteWordToGateRegister(Data);
+
+	LL_FlipSpiRCK();
+
+	LL_WriteWordToGateRegister(0);
+}
+//-----------------------------
+
+void LL_FlipSpiRCK()
+{
+	LL_SoftSpiRCK(TRUE);
+	DELAY_US(1);
+	LL_SoftSpiRCK(FALSE);
+}
+//-----------------------------
+
+void LL_WriteWordToGateRegister(uint16_t Word)
+{
+	for(int i = 15; i >= 0; i--)
 	{
-		LL_SoftSpiData((Data >> i) & 0x1);
+		LL_SoftSpiData((Word >> i) & 0x1);
 		DELAY_US(1);
 		LL_SoftSpiSRCK(TRUE);
 		DELAY_US(1);
 		LL_SoftSpiSRCK(FALSE);
 	}
-
-	LL_SoftSpiRCK(TRUE);
-	DELAY_US(1);
-	LL_SoftSpiRCK(FALSE);
-	LL_SoftSpiData(FALSE);
 }
 //-----------------------------
 
 void LL_ForceSYNC(bool State)
 {
-	// Синхронизация происходит при низком уровне на пине
+	// РЎРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ РїСЂРѕРёСЃС…РѕРґРёС‚ РїСЂРё РЅРёР·РєРѕРј СѓСЂРѕРІРЅРµ РЅР° РїРёРЅРµ
 	GPIO_SetState(GPIO_SYNC, !State);
 }
 //-----------------------------

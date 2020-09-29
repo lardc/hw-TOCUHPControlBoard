@@ -1,10 +1,11 @@
-// Include
+п»ї// Include
 //
 #include "Global.h"
 #include "Controller.h"
 #include "Interrupts.h"
 #include "SysConfig.h"
 #include "BoardConfig.h"
+#include "BCCIxParams.h"
 
 // Forward functions
 //
@@ -50,14 +51,14 @@ void SysClk_Config()
 
 void IO_Config()
 {
-	// Включение тактирования портов
+	// Р’РєР»СЋС‡РµРЅРёРµ С‚Р°РєС‚РёСЂРѕРІР°РЅРёСЏ РїРѕСЂС‚РѕРІ
 	RCC_GPIO_Clk_EN(PORTA);
 	RCC_GPIO_Clk_EN(PORTB);
 	
-	//Выходы
+	//Р’С‹С…РѕРґС‹
 	GPIO_Config(LED_BLINK_PORT, LED_BLINK_PIN, Output, PushPull, HighSpeed, NoPull);
 	
-	//Альтернативные функции портов
+	//РђР»СЊС‚РµСЂРЅР°С‚РёРІРЅС‹Рµ С„СѓРЅРєС†РёРё РїРѕСЂС‚РѕРІ
 	GPIO_Config(GPIOA, Pin_9, AltFn, PushPull, HighSpeed, NoPull); //PA9(USART1 TX)
 	GPIO_AltFn(GPIOA, Pin_9, AltFn_7);
 	
@@ -78,7 +79,7 @@ void CAN_Config()
 	RCC_CAN_Clk_EN(CAN_1_ClkEN);
 	NCAN_Init(SYSCLK, CAN_BAUDRATE, FALSE);
 	NCAN_FIFOInterrupt(TRUE);
-	NCAN_FilterInit(0, 0, 0); // Фильтр 0 пропускает все сообщения
+	NCAN_FilterInit(0, CAN_SLAVE_FILTER_ID, CAN_SLAVE_NID_MASK);
 }
 //--------------------------------------------
 

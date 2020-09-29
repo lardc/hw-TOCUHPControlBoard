@@ -1,6 +1,7 @@
-#include "InitConfig.h"
+п»ї#include "InitConfig.h"
 #include "Board.h"
 #include "SysConfig.h"
+#include "BCCIxParams.h"
 
 // Functions
 //
@@ -12,25 +13,25 @@ Boolean SysClk_Config()
 
 void EI_Config()
 {
-	EXTI_Config(EXTI_PA, EXTI_8, RISE_TRIG, 0);
-	EXTI_EnableInterrupt(EXTI3_IRQn, 0, true);
+	EXTI_Config(EXTI_PA, EXTI_8, BOTH_TRIG, 0);
+	EXTI_EnableInterrupt(EXTI9_5_IRQn, 0, true);
 }
 //------------------------------------------------
 
 void IO_Config()
 {
-	// Включение тактирования портов
+	// Р’РєР»СЋС‡РµРЅРёРµ С‚Р°РєС‚РёСЂРѕРІР°РЅРёСЏ РїРѕСЂС‚РѕРІ
 	RCC_GPIO_Clk_EN(PORTA);
 	RCC_GPIO_Clk_EN(PORTB);
 	
-	// Аналаговые входы
+	// РђРЅР°Р»Р°РіРѕРІС‹Рµ РІС…РѕРґС‹
 	GPIO_Config(GPIOA, Pin_3, Analog, NoPull, HighSpeed, NoPull);
 	
-	// Линия синхронизации (вход - выход)
+	// Р›РёРЅРёСЏ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёРё (РІС…РѕРґ - РІС‹С…РѕРґ)
 	GPIO_Config(GPIOA, Pin_8, Output, OpenDrain, HighSpeed, NoPull);
 	GPIO_SetState(GPIO_SYNC, true);
 	
-	// Выходы
+	// Р’С‹С…РѕРґС‹
 	GPIO_InitPushPullOutput(GPIO_RCK);
 	GPIO_InitPushPullOutput(GPIO_SRCK);
 	GPIO_InitPushPullOutput(GPIO_DATA);
@@ -41,7 +42,7 @@ void IO_Config()
 	GPIO_InitPushPullOutput(GPIO_HVPS_CTRL);
 	GPIO_InitPushPullOutput(GPIO_MW_CTRL);
 	
-	// Альтернативные функции
+	// РђР»СЊС‚РµСЂРЅР°С‚РёРІРЅС‹Рµ С„СѓРЅРєС†РёРё
 	GPIO_InitAltFunction(GPIO_ALT_CAN_RX, AltFn_9);
 	GPIO_InitAltFunction(GPIO_ALT_CAN_TX, AltFn_9);
 	GPIO_InitAltFunction(GPIO_ALT_UART_RX, AltFn_7);
@@ -54,7 +55,7 @@ void CAN_Config()
 	RCC_CAN_Clk_EN(CAN_1_ClkEN);
 	NCAN_Init(SYSCLK, CAN_BAUDRATE, FALSE);
 	NCAN_FIFOInterrupt(TRUE);
-	NCAN_FilterInit(0, 0, 0); // Фильтр 0 пропускает все сообщения
+	NCAN_FilterInit(0, CAN_SLAVE_FILTER_ID, CAN_SLAVE_NID_MASK);
 }
 //------------------------------------------------
 
@@ -84,9 +85,18 @@ void Timer7_Config()
 }
 //------------------------------------------------
 
+void Timer3_Config()
+{
+	TIM_Clock_En(TIM_3);
+	TIM_Config(TIM3, SYSCLK, TIMER3_uS);
+	TIM_Interupt(TIM3, 0, true);
+	TIM_Stop(TIM3);
+}
+//------------------------------------------------
+
 void WatchDog_Config()
 {
 	IWDG_Config();
-	IWDG_ConfigureFastUpdate();
+	IWDG_ConfigureSlowUpdate();
 }
 //------------------------------------------------

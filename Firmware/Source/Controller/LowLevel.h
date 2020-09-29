@@ -1,4 +1,4 @@
-#ifndef __LOWLEVEL_H
+﻿#ifndef __LOWLEVEL_H
 #define __LOWLEVEL_H
 
 // Include
@@ -16,7 +16,9 @@ void LL_SoftSpiSRCK(bool State);
 void LL_SoftSpiRCK(bool State);
 void LL_SoftSpiData(bool State);
 void LL_WriteToGateRegister(uint16_t Data);
+void LL_WriteWordToGateRegister(uint16_t Word);
 void LL_ForceSYNC(bool State);
 bool LL_GetSYNCState();
+void LL_FlipSpiRCK();
 
 #endif //__LOWLEVEL_H

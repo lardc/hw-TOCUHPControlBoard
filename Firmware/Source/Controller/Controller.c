@@ -1,4 +1,4 @@
-// Header
+п»ї// Header
 #include "Controller.h"
 //
 // Includes
@@ -11,6 +11,8 @@
 #include "LowLevel.h"
 #include "Measurement.h"
 #include "SysConfig.h"
+#include "math.h"
+#include "BCCIxParams.h"
 
 // Macro
 //
@@ -23,44 +25,47 @@ typedef void (*FUNC_AsyncDelegate)();
 // Variables
 //
 volatile DeviceState CONTROL_State = DS_None;
+volatile DeviceSubState CONTROL_SubState = SS_None;
 static Boolean CycleActive = false;
 static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 
 volatile Int64U CONTROL_TimeCounter = 0;
-Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0;
+Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
+Int64U CONTROL_PsBoardDisableTimeout = 0, CONTROL_AfterPulseTimeout = 0;
 
 // Forward functions
 //
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError);
-void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SwitchToFault(Int16U Reason);
 void Delay_mS(uint32_t Delay);
+void Delay_us(uint32_t Delay);
 void CONTROL_WatchDogUpdate();
-void CONTROL_StartBatteryCharge();
 void CONTROL_BatteryChargeLogic();
 void CONTROL_HandleLEDLogic();
 void CONTROL_SampleBatteryVoltage();
 void CONTROL_ResetToDefaultState();
 void CONTROL_ResetHardware();
+bool CONTROL_CheckGateRegisterValue();
 
 // Functions
 //
 void CONTROL_Init()
 {
-	// Переменные для конфигурации EndPoint
+	// РџРµСЂРµРјРµРЅРЅС‹Рµ РґР»СЏ РєРѕРЅС„РёРіСѓСЂР°С†РёРё EndPoint
 	Int16U EPIndexes[EP_COUNT];
 	Int16U EPSized[EP_COUNT];
 	pInt16U EPCounters[EP_COUNT];
 	pInt16U EPDatas[EP_COUNT];
 	
-	// Конфигурация сервиса работы Data-table и EPROM
+	// РљРѕРЅС„РёРіСѓСЂР°С†РёСЏ СЃРµСЂРІРёСЃР° СЂР°Р±РѕС‚С‹ Data-table Рё EPROM
 	EPROMServiceConfig EPROMService = {(FUNC_EPROM_WriteValues)&NFLASH_WriteDT, (FUNC_EPROM_ReadValues)&NFLASH_ReadDT};
-	// Инициализация data table
+	// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ data table
 	DT_Init(EPROMService, false);
-	// Инициализация device profile
+	DT_SaveFirmwareInfo(CAN_SLAVE_NID, 0);
+	// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ device profile
 	DEVPROFILE_Init(&CONTROL_DispatchAction, &CycleActive);
 	DEVPROFILE_InitEPService(EPIndexes, EPSized, EPCounters, EPDatas);
-	// Сброс значений
+	// РЎР±СЂРѕСЃ Р·РЅР°С‡РµРЅРёР№
 	DEVPROFILE_ResetControlSection();
 
 	CONTROL_ResetToDefaultState();
@@ -81,6 +86,7 @@ void CONTROL_ResetToDefaultState()
 
 	CONTROL_ResetHardware();
 	CONTROL_SetDeviceState(DS_None);
+	CONTROL_SetDeviceSubState(SS_None);
 }
 //------------------------------------------
 
@@ -93,6 +99,8 @@ void CONTROL_ResetHardware()
 	LL_ForceSYNC(false);
 	//
 	LL_BatteryDischarge(true);
+
+	LL_WriteToGateRegister(0);
 }
 //------------------------------------------
 
@@ -151,21 +159,50 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			DataTable[REG_WARNING] = 0;
 			break;
 			
+		case ACT_VOLTAGE_CONFIG:
+			{
+				if(CONTROL_State == DS_Ready)
+					CONTROL_StartBatteryCharge();
+				else
+					*pUserError = ERR_DEVICE_NOT_READY;
+			}
+			break;
+
 		case ACT_PULSE_CONFIG:
 			{
 				if(CONTROL_State == DS_Ready)
 				{
-					DataTable[REG_OP_RESULT] = OPRESULT_NONE;
-
-					LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
-					CONTROL_StartBatteryCharge();
+					if (CONTROL_CheckGateRegisterValue())
+					{
+						DataTable[REG_OP_RESULT] = OPRESULT_NONE;
+						LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+						LL_PSBoardOutput(false);
+						CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
+						CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
+						CONTROL_SetDeviceSubState(SS_WaitingSync);
+					}
+					else
+						CONTROL_SwitchToFault(DF_GATE_REGISTER);
 				}
 				else
 					*pUserError = ERR_DEVICE_NOT_READY;
 			}
 			break;
 
-			// Блок отладочных функция
+		case ACT_SW_PULSE:
+			{
+				if(CONTROL_State == DS_Ready)
+				{
+					LL_ForceSYNC(true);
+					Delay_us(100);
+					LL_ForceSYNC(false);
+				}
+				else
+					*pUserError = ERR_DEVICE_NOT_READY;
+			}
+			break;
+
+			// Р‘Р»РѕРє РѕС‚Р»Р°РґРѕС‡РЅС‹С… С„СѓРЅРєС†РёР№
 			
 		case ACT_DBG_FAN:
 			{
@@ -211,10 +248,37 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
 			break;
 			
+		case ACT_DBG_GATE_EN:
+			{
+				LL_ForceSYNC(true);
+				Delay_us(100);
+				LL_ForceSYNC(false);
+			}
+			break;
+
 		default:
 			return false;
 	}
 	
+	return true;
+}
+//------------------------------------------
+
+bool CONTROL_CheckGateRegisterValue()
+{
+	float CurrentPerLSB = 0;
+	float CurrentPerBit = 0;
+
+	CurrentPerLSB = (float)DataTable[REG_VOLTAGE_SETPOINT] / DataTable[REG_RESISTANCE_PER_LSB];
+
+	for (int i = 0; i <= GATE_REGISTER_RESOLUTION; i++)
+	{
+		CurrentPerBit = CurrentPerLSB * pow(2, i);
+
+		if ((CurrentPerBit > DataTable[REG_MAX_CURRENT_PER_BIT]) && (DataTable[REG_GATE_REGISTER] & (1 << i)))
+			return false;
+	}
+
 	return true;
 }
 //------------------------------------------
@@ -231,36 +295,40 @@ void CONTROL_StartBatteryCharge()
 void CONTROL_BatteryChargeLogic()
 {
 	int16_t VoltageError = (int16_t)TargetBatteryVoltage - ActualBatteryVoltage;
-	int16_t VoltageErrorLimit = DataTable[REG_VOLTAGE_SETPOINT];
+	int16_t VoltageErrorLimit = DataTable[REG_VOLTAGE_ERROR_LIMIT];
 	
-	// Поддержание напряжения на батарее
-	if(CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
+	// РџРѕРґРґРµСЂР¶Р°РЅРёРµ РЅР°РїСЂСЏР¶РµРЅРёСЏ РЅР° Р±Р°С‚Р°СЂРµРµ
+	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
+			&& (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
-		if(VoltageError > VoltageErrorLimit)
+		if((VoltageError < VoltageErrorLimit) && (VoltageError > -VoltageErrorLimit))
 		{
-			// Зона активного заряда
-			LL_PSBoardOutput(true);
+			// Р—РѕРЅР° РїР°СЃСЃРёРІРЅРѕРіРѕ СЂР°Р·СЂСЏРґР°
+			LL_PSBoardOutput(false);
 			LL_BatteryDischarge(false);
 		}
 		else if(VoltageError < -2 * VoltageErrorLimit)
 		{
-			// Зона активного разряда
+			// Р—РѕРЅР° Р°РєС‚РёРІРЅРѕРіРѕ СЂР°Р·СЂСЏРґР°
 			LL_PSBoardOutput(false);
 			LL_BatteryDischarge(true);
 		}
-		else if(VoltageError < -VoltageErrorLimit)
+		else if(VoltageError > VoltageErrorLimit)
 		{
-			// Зона пассивного разряда
-			LL_PSBoardOutput(false);
+			// Р—РѕРЅР° Р°РєС‚РёРІРЅРѕРіРѕ Р·Р°СЂСЏРґР°
+			LL_PSBoardOutput(true);
 			LL_BatteryDischarge(false);
 		}
 	}
 	
-	// Условие смены состояния
+	// РЈСЃР»РѕРІРёРµ СЃРјРµРЅС‹ СЃРѕСЃС‚РѕСЏРЅРёСЏ
 	if(CONTROL_State == DS_InProcess)
 	{
 		if(ABS(VoltageError) < VoltageErrorLimit)
-			CONTROL_SetDeviceState(DS_Ready);
+		{
+			if(CONTROL_TimeCounter > CONTROL_AfterPulseTimeout)
+				CONTROL_SetDeviceState(DS_Ready);
+		}
 		else if(CONTROL_TimeCounter > CONTROL_ChargeTimeout)
 			CONTROL_SwitchToFault(DF_BATTERY);
 	}
@@ -272,11 +340,11 @@ void CONTROL_HandleFanLogic(bool IsImpulse)
 	static uint32_t IncrementCounter = 0;
 	static uint64_t FanOnTimeout = 0;
 
-	// Увеличение счётчика в простое
+	// РЈРІРµР»РёС‡РµРЅРёРµ СЃС‡С‘С‚С‡РёРєР° РІ РїСЂРѕСЃС‚РѕРµ
 	if (!IsImpulse)
 		IncrementCounter++;
 
-	// Включение вентилятора
+	// Р’РєР»СЋС‡РµРЅРёРµ РІРµРЅС‚РёР»СЏС‚РѕСЂР°
 	if ((IncrementCounter > ((uint32_t)DataTable[REG_FAN_OPERATE_PERIOD] * 1000)) || IsImpulse)
 	{
 		IncrementCounter = 0;
@@ -284,7 +352,7 @@ void CONTROL_HandleFanLogic(bool IsImpulse)
 		LL_Fan(true);
 	}
 
-	// Отключение вентилятора
+	// РћС‚РєР»СЋС‡РµРЅРёРµ РІРµРЅС‚РёР»СЏС‚РѕСЂР°
 	if (FanOnTimeout && (CONTROL_TimeCounter > FanOnTimeout))
 	{
 		FanOnTimeout = 0;
@@ -319,11 +387,38 @@ void CONTROL_SetDeviceState(DeviceState NewState)
 }
 //------------------------------------------
 
+void CONTROL_SetDeviceSubState(DeviceSubState NewSubState)
+{
+	CONTROL_SubState = NewSubState;
+}
+//------------------------------------------
+
+bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState)
+{
+	if(CONTROL_SubState == NewSubState)
+		return true;
+	else
+		return false;
+}
+//------------------------------------------
+
 void Delay_mS(uint32_t Delay)
 {
 	uint64_t Counter = (uint64_t)CONTROL_TimeCounter + Delay;
 	while(Counter > CONTROL_TimeCounter)
 		CONTROL_WatchDogUpdate();
+}
+//------------------------------------------
+
+void Delay_us(uint32_t Delay)
+{
+	for(uint32_t i = 0; i < Delay * 7; i++)
+	{
+		asm("nop");
+		asm("nop");
+		asm("nop");
+		asm("nop");
+	}
 }
 //------------------------------------------
 
@@ -340,3 +435,19 @@ void CONTROL_SampleBatteryVoltage()
 	DataTable[REG_ACTUAL_BAT_VOLTAGE] = ActualBatteryVoltage;
 }
 //------------------------------------------
+
+void CONTROL_CurrentEmergencyStop(Int16U Reason)
+{
+	LL_FlipSpiRCK();
+	CONTROL_SwitchToFault(Reason);
+}
+//------------------------------------------
+
+void CONTROL_HandleSynchronizationTimeout()
+{
+	if(CONTROL_CheckDeviceSubState(SS_WaitingSync) && (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
+	{
+		CONTROL_SetDeviceSubState(SS_None);
+		LL_WriteToGateRegister(0);
+	}
+}

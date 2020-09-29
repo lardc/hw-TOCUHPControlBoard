@@ -1,4 +1,4 @@
-// -----------------------------------------
+﻿// -----------------------------------------
 // Device profile
 // ----------------------------------------
 
@@ -83,7 +83,6 @@ void DEVPROFILE_Init(xCCI_FUNC_CallbackAction SpecializedDispatch, Boolean* Mask
 		DATA_TABLE_SIZE, SCCI_TIMEOUT_TICKS, 0);
 	BCCI_Init(&DEVICE_CAN_Interface, &CAN_IOConfig, &X_ServiceConfig, (pInt16U)DataTable,
 		DATA_TABLE_SIZE, 0);
-	//BCCIM_Init(&MASTER_DEVICE_CAN_Interface, &CAN_IOConfig);
 	// Set write protection
 	SCCI_AddProtectedArea(&DEVICE_RS232_Interface, DATA_TABLE_WP_START, DATA_TABLE_SIZE - 1);
 	BCCI_AddProtectedArea(&DEVICE_CAN_Interface, DATA_TABLE_WP_START, DATA_TABLE_SIZE - 1);

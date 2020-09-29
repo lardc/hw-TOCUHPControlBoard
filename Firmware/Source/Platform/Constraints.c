@@ -1,4 +1,4 @@
-// -----------------------------------------
+﻿// -----------------------------------------
 // Global definitions
 // ----------------------------------------
 
@@ -9,17 +9,17 @@
 //
 const TableItemConstraint NVConstraint[DATA_TABLE_NV_SIZE] =
 {
-	{0, INT16U_MAX, 0},															// 0
-	{GAIN_COEFFICIENT_MIN, GAIN_COEFFICIENT_MAX, GAIN_VOLTAGE_DEF},				// 1
+	{0, 0, 0},																	// 0
+	{0, 0, 0},																	// 1
 	{VOLTAGE_ERROR_MIN, VOLTAGE_ERROR_MAX, VOLTAGE_ERROR_DEF},					// 2
 	{CHARGE_TIMEOUT_MIN, CHARGE_TIMEOUT_MAX, CHARGE_TIMEOUT_DEF},				// 3
 	{FAN_OPERATE_MIN, FAN_OPERATE_MAX, FAN_OPERATE_DEF},						// 4
 	{FAN_OPERATE_MIN, FAN_OPERATE_MAX, FAN_OPERATE_DEF},						// 5
-	{0, 0, 0},																	// 6
-	{0, 0, 0},																	// 7
-	{0, 0, 0},																	// 8
-	{0, 0, 0},																	// 9
-	{0, 0, 0},																	// 10
+	{RECHARGE_TIMEOUT_MIN, RECHARGE_TIMEOUT_MAX, RECHARGE_TIMEOUT_DEF},			// 6
+	{RESISTANCE_PER_LSB_MIN, RESISTANCE_PER_LSB_MAX, RESISTANCE_PER_LSB_DEF},	// 7
+	{CURRENT_MAX_PER_BIT_MIN, CURRENT_MAX_PER_BIT_MAX, CURRENT_MAX_PER_BIT_DEF},// 8
+	{SYNC_WAIT_TIMEOUT_MIN, SYNC_WAIT_TIMEOUT_MAX, SYNC_WAIT_TIMEOUT_DEF},		// 9
+	{AFTER_PULSE_TIMEOUT_MIN, AFTER_PULSE_TIMEOUT_MAX, AFTER_PULSE_TIMEOUT_DEF},// 10
 	{0, 0, 0},																	// 11
 	{0, 0, 0},																	// 12
 	{0, 0, 0},																	// 13
@@ -29,11 +29,11 @@ const TableItemConstraint NVConstraint[DATA_TABLE_NV_SIZE] =
 	{0, 0, 0},																	// 17
 	{0, 0, 0},																	// 18
 	{0, 0, 0},																	// 19
-	{0, 0, 0},																	// 20
-	{0, 0, 0},																	// 21
-	{0, 0, 0},																	// 22
-	{0, 0, 0},																	// 23
-	{0, 0, 0},																	// 24
+	{0, INT16U_MAX, 0},															// 20
+	{GAIN_COEFFICIENT_MIN, GAIN_COEFFICIENT_MAX, GAIN_VOLTAGE_DEF},				// 21
+	{0, INT16U_MAX, 0},															// 22
+	{GAIN_COEFFICIENT_MIN, GAIN_COEFFICIENT_MAX, GAIN_VOLTAGE_DEF},				// 23
+	{0, INT16U_MAX, 0},															// 24
 	{0, 0, 0},																	// 25
 	{0, 0, 0},																	// 26
 	{0, 0, 0},																	// 27
@@ -173,7 +173,7 @@ const TableItemConstraint VConstraint[DATA_TABLE_WP_START - DATA_TABLE_WR_START]
 	{0, 0, 0},																	// 157
 	{0, 0, 0},																	// 158
 	{0, 0, 0},																	// 159
-	{0, 0, 0},																	// 160
+	{0, INT16U_MAX, 0},															// 160
 	{0, 0, 0},																	// 161
 	{0, 0, 0},																	// 162
 	{0, 0, 0},																	// 163
