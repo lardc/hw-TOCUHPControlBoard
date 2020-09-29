@@ -51,7 +51,6 @@
 #define REG_GATE_REGISTER				129	// Значение-маска конфигурации затворов
 //
 #define REG_DBG							160	// Отладочный регистр
-//
 
 // Регистры только чтение
 #define REG_DEV_STATE					192	// Регистр состояния
@@ -63,6 +62,11 @@
 //
 #define REG_ACTUAL_BAT_VOLTAGE			200	// Текущее напряжение на батарее (в В)
 // -----------------------------
+#define REG_FWINFO_SLAVE_NID			256	// Device CAN slave node ID
+#define REG_FWINFO_MASTER_NID			257	// Device CAN master node ID (if presented)
+// 258 - 259
+#define REG_FWINFO_STR_LEN				260	// Length of the information string record
+#define REG_FWINFO_STR_BEGIN			261	// Begining of the information string record
 
 // Operation results
 #define OPRESULT_NONE					0	// No information or not finished
