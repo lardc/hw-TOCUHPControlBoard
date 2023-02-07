@@ -21,6 +21,13 @@
 // Types
 //
 typedef void (*FUNC_AsyncDelegate)();
+//
+typedef enum __CapBatteryState
+{
+	CBS_PassiveDischarge 	= 0,
+	CBS_ActiveDischarge 	= 1,
+	CBS_Charge 				= 2
+} CapBatteryState;
 
 // Variables
 //
@@ -28,6 +35,7 @@ volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = SS_None;
 static Boolean CycleActive = false;
 static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
+CapBatteryState CONTROL_CapBatteryState = CBS_PassiveDischarge;
 
 volatile Int64U CONTROL_TimeCounter = 0;
 Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
@@ -269,15 +277,20 @@ bool CONTROL_CheckGateRegisterValue()
 	float CurrentPerLSB = 0;
 	float CurrentPerBit = 0;
 
-	CurrentPerLSB = (float)DataTable[REG_VOLTAGE_SETPOINT] / DataTable[REG_RESISTANCE_PER_LSB];
-
-	for (int i = 0; i <= GATE_REGISTER_RESOLUTION; i++)
+	if(DataTable[REG_GATE_REGISTER] < pow(2, GATE_REGISTER_RESOLUTION))
 	{
-		CurrentPerBit = CurrentPerLSB * pow(2, i);
+		CurrentPerLSB = (float)DataTable[REG_VOLTAGE_SETPOINT] / DataTable[REG_RESISTANCE_PER_LSB];
 
-		if ((CurrentPerBit > DataTable[REG_MAX_CURRENT_PER_BIT]) && (DataTable[REG_GATE_REGISTER] & (1 << i)))
-			return false;
+		for (int i = 0; i < GATE_REGISTER_RESOLUTION; i++)
+		{
+			CurrentPerBit = CurrentPerLSB * pow(2, i);
+
+			if ((CurrentPerBit > DataTable[REG_MAX_CURRENT_PER_BIT]) && (DataTable[REG_GATE_REGISTER] & (1 << i)))
+				return false;
+		}
 	}
+	else
+		return false;
 
 	return true;
 }
@@ -288,43 +301,55 @@ void CONTROL_StartBatteryCharge()
 	TargetBatteryVoltage = DataTable[REG_VOLTAGE_SETPOINT];
 	CONTROL_ChargeTimeout = CONTROL_TimeCounter + DataTable[REG_BAT_CHARGE_TIMEOUT];
 
+	CONTROL_CapBatteryState = CBS_Charge;
 	CONTROL_SetDeviceState(DS_InProcess);
 }
 //------------------------------------------
 
 void CONTROL_BatteryChargeLogic()
 {
-	int16_t VoltageError = (int16_t)TargetBatteryVoltage - ActualBatteryVoltage;
-	int16_t VoltageErrorLimit = DataTable[REG_VOLTAGE_ERROR_LIMIT];
+	float VoltageError = ((float)TargetBatteryVoltage - ActualBatteryVoltage) / TargetBatteryVoltage * 100;
+	float VoltageHysteresis = (float)DataTable[REG_VOLTAGE_HYST] / 10;
 	
 	// Поддержание напряжения на батарее
 	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
 			&& (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
-		if((VoltageError < VoltageErrorLimit) && (VoltageError > -VoltageErrorLimit))
+		switch(CONTROL_CapBatteryState)
 		{
-			// Зона пассивного разряда
+		case CBS_PassiveDischarge:
 			LL_PSBoardOutput(false);
 			LL_BatteryDischarge(false);
-		}
-		else if(VoltageError < -2 * VoltageErrorLimit)
-		{
-			// Зона активного разряда
+
+			if(VoltageError >= VoltageHysteresis)
+				CONTROL_CapBatteryState = CBS_Charge;
+
+			if(VoltageError < -VoltageHysteresis)
+				CONTROL_CapBatteryState = CBS_ActiveDischarge;
+			break;
+
+		case CBS_ActiveDischarge:
 			LL_PSBoardOutput(false);
 			LL_BatteryDischarge(true);
-		}
-		else if(VoltageError > VoltageErrorLimit)
-		{
-			// Зона активного заряда
-			LL_PSBoardOutput(true);
+
+			if(VoltageError >= -VoltageHysteresis)
+				CONTROL_CapBatteryState = CBS_PassiveDischarge;
+			break;
+
+		case CBS_Charge:
 			LL_BatteryDischarge(false);
+			LL_PSBoardOutput(true);
+
+			if(VoltageError <= -VoltageHysteresis)
+				CONTROL_CapBatteryState = CBS_PassiveDischarge;
+			break;
 		}
 	}
-	
+
 	// Условие смены состояния
 	if(CONTROL_State == DS_InProcess)
 	{
-		if(ABS(VoltageError) < VoltageErrorLimit)
+		if(CONTROL_CapBatteryState == CBS_PassiveDischarge)
 		{
 			if(CONTROL_TimeCounter > CONTROL_AfterPulseTimeout)
 				CONTROL_SetDeviceState(DS_Ready);
