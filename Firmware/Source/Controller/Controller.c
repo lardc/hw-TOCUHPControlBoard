@@ -301,7 +301,7 @@ void CONTROL_StartBatteryCharge()
 	TargetBatteryVoltage = DataTable[REG_VOLTAGE_SETPOINT];
 	CONTROL_ChargeTimeout = CONTROL_TimeCounter + DataTable[REG_BAT_CHARGE_TIMEOUT];
 
-	CONTROL_CapBatteryState = CBS_Charge;
+	CONTROL_CapBatteryState = CBS_PassiveDischarge;
 	CONTROL_SetDeviceState(DS_InProcess);
 }
 //------------------------------------------
