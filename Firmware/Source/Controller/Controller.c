@@ -138,7 +138,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 					LL_MeanWellRelay(true);
 					CONTROL_StartBatteryCharge();
 				}
-				else if(CONTROL_State != DS_Ready || CONTROL_State != DS_InProcess)
+				else if(CONTROL_State != DS_Ready && CONTROL_State != DS_InProcess)
 					*pUserError = ERR_OPERATION_BLOCKED;
 			}
 			break;
