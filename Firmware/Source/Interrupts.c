@@ -20,27 +20,25 @@ void EXTI9_5_IRQHandler()
 {
 	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
 	{
+		Delay_us(5);
+
 		if(LL_GetSYNCState())
 		{
-			CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
-			CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
-
 			INT_SyncTimeoutControl(false);
 
-			DataTable[REG_OP_RESULT] = OPRESULT_OK;
+			CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
+			CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
+			CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT];
 
+			CONTROL_InitBatteryChargeProcess();
 			CONTROL_HandleFanLogic(true);
 			LL_ExternalLED(true);
 			CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
+
+			DataTable[REG_OP_RESULT] = OPRESULT_OK;
 		}
 		else
-		{
 			INT_SyncTimeoutControl(true);
-
-			CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT];
-
-			CONTROL_StartBatteryCharge();
-		}
 	}
 
 	EXTI_FlagReset(EXTI_8);
@@ -51,7 +49,10 @@ void TIM3_IRQHandler()
 {
 	if(TIM_StatusCheck(TIM3))
 	{
-		CONTROL_CurrentEmergencyStop(DF_SYNC_TOO_LONG);
+		INT_SyncTimeoutControl(false);
+
+		if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+			CONTROL_CurrentEmergencyStop(DF_SYNC_TOO_LONG);
 
 		TIM_StatusClear(TIM3);
 	}
