@@ -37,6 +37,7 @@ bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState);
 void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SetDeviceSubState(DeviceSubState NewSubState);
 void CONTROL_HandleSynchronizationTimeout();
-void CONTROL_StartBatteryCharge();
+void CONTROL_InitBatteryChargeProcess();
+void Delay_us(uint32_t Delay);
 
 #endif // __CONTROLLER_H

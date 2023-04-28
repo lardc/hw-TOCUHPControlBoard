@@ -46,11 +46,9 @@ Int64U CONTROL_PsBoardDisableTimeout = 0, CONTROL_AfterPulseTimeout = 0;
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError);
 void CONTROL_SwitchToFault(Int16U Reason);
 void Delay_mS(uint32_t Delay);
-void Delay_us(uint32_t Delay);
 void CONTROL_WatchDogUpdate();
 void CONTROL_BatteryChargeLogic();
 void CONTROL_HandleLEDLogic();
-void CONTROL_SampleBatteryVoltage();
 void CONTROL_ResetToDefaultState();
 void CONTROL_ResetHardware();
 bool CONTROL_CheckGateRegisterValue();
@@ -116,7 +114,6 @@ void CONTROL_Idle()
 {
 	DEVPROFILE_ProcessRequests();
 	
-	CONTROL_SampleBatteryVoltage();
 	CONTROL_BatteryChargeLogic();
 
 	CONTROL_HandleLEDLogic();
@@ -136,7 +133,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 				if(CONTROL_State == DS_None)
 				{
 					LL_MeanWellRelay(true);
-					CONTROL_StartBatteryCharge();
+					CONTROL_InitBatteryChargeProcess();
 				}
 				else if(CONTROL_State != DS_Ready && CONTROL_State != DS_InProcess)
 					*pUserError = ERR_OPERATION_BLOCKED;
@@ -170,7 +167,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 		case ACT_VOLTAGE_CONFIG:
 			{
 				if(CONTROL_State == DS_Ready)
-					CONTROL_StartBatteryCharge();
+					CONTROL_InitBatteryChargeProcess();
 				else
 					*pUserError = ERR_DEVICE_NOT_READY;
 			}
@@ -296,10 +293,9 @@ bool CONTROL_CheckGateRegisterValue()
 }
 //------------------------------------------
 
-void CONTROL_StartBatteryCharge()
+void CONTROL_InitBatteryChargeProcess()
 {
 	TargetBatteryVoltage = DataTable[REG_VOLTAGE_SETPOINT];
-	CONTROL_ChargeTimeout = CONTROL_TimeCounter + DataTable[REG_BAT_CHARGE_TIMEOUT];
 
 	CONTROL_CapBatteryState = CBS_PassiveDischarge;
 	CONTROL_SetDeviceState(DS_InProcess);
@@ -308,53 +304,63 @@ void CONTROL_StartBatteryCharge()
 
 void CONTROL_BatteryChargeLogic()
 {
-	float VoltageError = ((float)TargetBatteryVoltage - ActualBatteryVoltage) / TargetBatteryVoltage * 100;
-	float VoltageHysteresis = (float)DataTable[REG_VOLTAGE_HYST] / 10;
+	float VoltageError, VoltageHysteresis;
+	static bool VoltageReadyFlag = false;
+
+	ActualBatteryVoltage = DataTable[REG_ACTUAL_BAT_VOLTAGE] = MEASURE_GetBatteryVoltage();
+	VoltageError = ((float)TargetBatteryVoltage - ActualBatteryVoltage) / TargetBatteryVoltage * 100;
+	VoltageHysteresis = (float)DataTable[REG_VOLTAGE_HYST] / 10;
 	
 	// Поддержание напряжения на батарее
-	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready)
-			&& (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
+	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready) && (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
 		switch(CONTROL_CapBatteryState)
 		{
-		case CBS_PassiveDischarge:
-			LL_PSBoardOutput(false);
-			LL_BatteryDischarge(false);
+			case CBS_PassiveDischarge:
+				VoltageReadyFlag = false;
 
-			if(VoltageError >= VoltageHysteresis)
-				CONTROL_CapBatteryState = CBS_Charge;
+				LL_PSBoardOutput(false);
+				LL_BatteryDischarge(false);
 
-			if(VoltageError < -VoltageHysteresis)
-				CONTROL_CapBatteryState = CBS_ActiveDischarge;
-			break;
+				if(VoltageError >= VoltageHysteresis)
+				{
+					CONTROL_ChargeTimeout = CONTROL_TimeCounter + DataTable[REG_BAT_CHARGE_TIMEOUT];
+					CONTROL_CapBatteryState = CBS_Charge;
+				}
+				else
+				{
+					if(VoltageError < -VoltageHysteresis)
+						CONTROL_CapBatteryState = CBS_ActiveDischarge;
+					else
+						VoltageReadyFlag = true;
+				}
+				break;
 
-		case CBS_ActiveDischarge:
-			LL_PSBoardOutput(false);
-			LL_BatteryDischarge(true);
+			case CBS_ActiveDischarge:
+				LL_PSBoardOutput(false);
+				LL_BatteryDischarge(true);
 
-			if(VoltageError >= -VoltageHysteresis)
-				CONTROL_CapBatteryState = CBS_PassiveDischarge;
-			break;
+				if(VoltageError >= -VoltageHysteresis)
+					CONTROL_CapBatteryState = CBS_PassiveDischarge;
+				break;
 
-		case CBS_Charge:
-			LL_BatteryDischarge(false);
-			LL_PSBoardOutput(true);
+			case CBS_Charge:
+				LL_BatteryDischarge(false);
+				LL_PSBoardOutput(true);
 
-			if(VoltageError <= -VoltageHysteresis)
-				CONTROL_CapBatteryState = CBS_PassiveDischarge;
-			break;
+				if(VoltageError <= -VoltageHysteresis)
+					CONTROL_CapBatteryState = CBS_PassiveDischarge;
+				break;
 		}
 	}
 
 	// Условие смены состояния
 	if(CONTROL_State == DS_InProcess)
 	{
-		if(CONTROL_CapBatteryState == CBS_PassiveDischarge)
-		{
-			if(CONTROL_TimeCounter > CONTROL_AfterPulseTimeout)
-				CONTROL_SetDeviceState(DS_Ready);
-		}
-		else if(CONTROL_TimeCounter > CONTROL_ChargeTimeout)
+		if(VoltageReadyFlag && CONTROL_TimeCounter > CONTROL_AfterPulseTimeout)
+			CONTROL_SetDeviceState(DS_Ready);
+
+		if(CONTROL_CapBatteryState == CBS_Charge && CONTROL_TimeCounter > CONTROL_ChargeTimeout)
 			CONTROL_SwitchToFault(DF_BATTERY);
 	}
 }
@@ -454,12 +460,6 @@ void CONTROL_WatchDogUpdate()
 }
 //------------------------------------------
 
-void CONTROL_SampleBatteryVoltage()
-{
-	ActualBatteryVoltage = MEASURE_GetBatteryVoltage();
-	DataTable[REG_ACTUAL_BAT_VOLTAGE] = ActualBatteryVoltage;
-}
-//------------------------------------------
 
 void CONTROL_CurrentEmergencyStop(Int16U Reason)
 {
