@@ -3,4 +3,8 @@
 
 #include "stdinc.h"
 
+// Variables
+//
+extern bool Impulse;
+
 #endif // __INTERRUPTS_H

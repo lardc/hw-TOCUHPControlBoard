@@ -31,13 +31,12 @@ extern Int64U CONTROL_PsBoardDisableTimeout;
 // Functions
 void CONTROL_Init();
 void CONTROL_Idle();
-void CONTROL_HandleFanLogic(bool IsImpulse);
 void CONTROL_CurrentEmergencyStop(Int16U Reason);
 bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState);
 void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SetDeviceSubState(DeviceSubState NewSubState);
-void CONTROL_HandleSynchronizationTimeout();
 void CONTROL_InitBatteryChargeProcess();
-void Delay_us(uint32_t Delay);
+void CONTROL_HandleFanLogic(bool IsImpulse);
+void CONTROL_HandleLEDLogic(bool IsImpulse);
 
 #endif // __CONTROLLER_H

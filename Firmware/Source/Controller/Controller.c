@@ -13,6 +13,7 @@
 #include "SysConfig.h"
 #include "math.h"
 #include "BCCIxParams.h"
+#include "Delay.h"
 
 // Macro
 //
@@ -48,10 +49,10 @@ void CONTROL_SwitchToFault(Int16U Reason);
 void Delay_mS(uint32_t Delay);
 void CONTROL_WatchDogUpdate();
 void CONTROL_BatteryChargeLogic();
-void CONTROL_HandleLEDLogic();
 void CONTROL_ResetToDefaultState();
 void CONTROL_ResetHardware();
 bool CONTROL_CheckGateRegisterValue();
+void CONTROL_HandleSynchronizationTimeout();
 
 // Functions
 //
@@ -112,12 +113,12 @@ void CONTROL_ResetHardware()
 
 void CONTROL_Idle()
 {
-	DEVPROFILE_ProcessRequests();
-	
 	CONTROL_BatteryChargeLogic();
+	CONTROL_HandleFanLogic(Impulse);
+	CONTROL_HandleLEDLogic(Impulse);
+	CONTROL_HandleSynchronizationTimeout();
 
-	CONTROL_HandleLEDLogic();
-
+	DEVPROFILE_ProcessRequests();
 	CONTROL_WatchDogUpdate();
 }
 //------------------------------------------
@@ -199,7 +200,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 				if(CONTROL_State == DS_Ready)
 				{
 					LL_ForceSYNC(true);
-					Delay_us(100);
+					DELAY_US(100);
 					LL_ForceSYNC(false);
 				}
 				else
@@ -256,7 +257,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 		case ACT_DBG_GATE_EN:
 			{
 				LL_ForceSYNC(true);
-				Delay_us(100);
+				DELAY_US(100);
 				LL_ForceSYNC(false);
 			}
 			break;
@@ -299,6 +300,7 @@ void CONTROL_InitBatteryChargeProcess()
 
 	CONTROL_CapBatteryState = CBS_PassiveDischarge;
 	CONTROL_SetDeviceState(DS_InProcess);
+	CONTROL_SetDeviceSubState(SS_None);
 }
 //------------------------------------------
 
@@ -392,12 +394,17 @@ void CONTROL_HandleFanLogic(bool IsImpulse)
 }
 //-----------------------------------------------
 
-void CONTROL_HandleLEDLogic()
+void CONTROL_HandleLEDLogic(bool IsImpulse)
 {
-	if (CONTROL_LEDTimeout && (CONTROL_TimeCounter > CONTROL_LEDTimeout))
+	if(IsImpulse)
 	{
-		CONTROL_LEDTimeout = 0;
-		LL_ExternalLED(false);
+		LL_ExternalLED(true);
+		CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
+	}
+	else
+	{
+		if(CONTROL_TimeCounter > CONTROL_LEDTimeout)
+			LL_ExternalLED(false);
 	}
 }
 //-----------------------------------------------
@@ -438,18 +445,6 @@ void Delay_mS(uint32_t Delay)
 	uint64_t Counter = (uint64_t)CONTROL_TimeCounter + Delay;
 	while(Counter > CONTROL_TimeCounter)
 		CONTROL_WatchDogUpdate();
-}
-//------------------------------------------
-
-void Delay_us(uint32_t Delay)
-{
-	for(uint32_t i = 0; i < Delay * 7; i++)
-	{
-		asm("nop");
-		asm("nop");
-		asm("nop");
-		asm("nop");
-	}
 }
 //------------------------------------------
 

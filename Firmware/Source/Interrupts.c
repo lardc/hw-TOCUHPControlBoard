@@ -10,6 +10,10 @@
 #include "DeviceObjectDictionary.h"
 //
 
+// Variables
+//
+bool Impulse = false;
+
 // Functions prototypes
 void INT_SyncTimeoutControl(bool State);
 //
@@ -20,25 +24,23 @@ void EXTI9_5_IRQHandler()
 {
 	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
 	{
-		Delay_us(5);
-
 		if(LL_GetSYNCState())
 		{
-			INT_SyncTimeoutControl(false);
+			Impulse = false;
 
 			CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
 			CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
 			CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT];
 
-			CONTROL_InitBatteryChargeProcess();
-			CONTROL_HandleFanLogic(true);
-			LL_ExternalLED(true);
-			CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
-
 			DataTable[REG_OP_RESULT] = OPRESULT_OK;
+			CONTROL_InitBatteryChargeProcess();
 		}
 		else
-			INT_SyncTimeoutControl(true);
+			Impulse = true;
+
+		INT_SyncTimeoutControl(Impulse);
+		CONTROL_HandleFanLogic(Impulse);
+		CONTROL_HandleLEDLogic(Impulse);
 	}
 
 	EXTI_FlagReset(EXTI_8);
@@ -84,9 +86,6 @@ void TIM7_IRQHandler()
 
 	if(TIM_StatusCheck(TIM7))
 	{
-		CONTROL_HandleFanLogic(false);
-		CONTROL_HandleSynchronizationTimeout();
-
 		CONTROL_TimeCounter++;
 		if(++LED_BlinkTimeCounter > TIME_LED_BLINK)
 		{

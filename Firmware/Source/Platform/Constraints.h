@@ -32,19 +32,19 @@
 #define RECHARGE_TIMEOUT_MAX		500		// в мс
 #define RECHARGE_TIMEOUT_DEF		10		// в мс
 
-#define RESISTANCE_PER_LSB_MIN		480		// в Ом
+#define RESISTANCE_PER_LSB_MIN		240		// в Ом
 #define RESISTANCE_PER_LSB_MAX		10000	// в Ом
 #define RESISTANCE_PER_LSB_DEF		3000	// в Ом
 
 #define CURRENT_MAX_PER_BIT_MIN		1		// в А
-#define CURRENT_MAX_PER_BIT_MAX		500		// в А
+#define CURRENT_MAX_PER_BIT_MAX		1500	// в А
 #define CURRENT_MAX_PER_BIT_DEF		50		// в А
 
 #define SYNC_WAIT_TIMEOUT_MIN		0		// в мс
 #define SYNC_WAIT_TIMEOUT_MAX		10000	// в мс
 #define SYNC_WAIT_TIMEOUT_DEF		20		// в мс
 
-#define AFTER_PULSE_TIMEOUT_MIN		500		// в мс
+#define AFTER_PULSE_TIMEOUT_MIN		0		// в мс
 #define AFTER_PULSE_TIMEOUT_MAX		30000	// в мс
 #define AFTER_PULSE_TIMEOUT_DEF		1000	// в мс
 
