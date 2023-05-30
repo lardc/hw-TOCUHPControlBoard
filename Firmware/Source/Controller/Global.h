@@ -17,6 +17,4 @@
 #define ADC_REF_VOLTAGE				3300.0f	// Опорное напряжение (в мВ)
 #define ADC_RESOLUTION				4095	// Разрешение АЦП
 
-#define GATE_REGISTER_RESOLUTION	9		// Разрешение регистра затворов (бит)
-
 #endif //  __GLOBAL_H

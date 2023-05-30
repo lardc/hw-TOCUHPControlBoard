@@ -99,7 +99,6 @@ void CONTROL_ResetToDefaultState()
 
 void CONTROL_ResetHardware()
 {
-	LL_Fan(false);
 	LL_ExternalLED(false);
 	LL_MeanWellRelay(false);
 	LL_PSBoardOutput(false);
@@ -114,7 +113,6 @@ void CONTROL_ResetHardware()
 void CONTROL_Idle()
 {
 	CONTROL_BatteryChargeLogic();
-	CONTROL_HandleFanLogic(Impulse);
 	CONTROL_HandleLEDLogic(Impulse);
 	CONTROL_HandleSynchronizationTimeout();
 
@@ -275,11 +273,11 @@ bool CONTROL_CheckGateRegisterValue()
 	float CurrentPerLSB = 0;
 	float CurrentPerBit = 0;
 
-	if(DataTable[REG_GATE_REGISTER] < pow(2, GATE_REGISTER_RESOLUTION))
+	if(DataTable[REG_GATE_REGISTER] < pow(2, DataTable[REG_GATE_RESOLUTION]))
 	{
-		CurrentPerLSB = (float)DataTable[REG_VOLTAGE_SETPOINT] / DataTable[REG_RESISTANCE_PER_LSB];
+		CurrentPerLSB = (float)DataTable[REG_VOLTAGE_SETPOINT] / (float)DataTable[REG_RESISTANCE_PER_LSB] / 100;
 
-		for (int i = 0; i < GATE_REGISTER_RESOLUTION; i++)
+		for (int i = 0; i < DataTable[REG_GATE_RESOLUTION]; i++)
 		{
 			CurrentPerBit = CurrentPerLSB * pow(2, i);
 

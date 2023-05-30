@@ -34,10 +34,11 @@
 #define REG_FAN_OPERATE_TIME			4	// Время работы вентилятора после импульса (в с)
 #define REG_FAN_OPERATE_PERIOD			5	// В простое вентилятор включается не реже чем (в с)
 #define REG_PS_BOARD_DISABLE_TIMEOUT	6	// Таймаут дозаряда после импульса, мс
-#define REG_RESISTANCE_PER_LSB			7	// Сопротивление наименьшего значащего разряда (в Ом)
+#define REG_RESISTANCE_PER_LSB			7	// Сопротивление наименьшего значащего разряда (в Ом * 100)
 #define REG_MAX_CURRENT_PER_BIT			8	// Максимальный ток на 1 бит (в А)
 #define REG_SYNC_WAIT_TIMEOUT			9	// Таймаут ожидания импульса синхронизации, мс
 #define REG_AFTER_PULSE_TIMEOUT			10	// Таймаут после импульса, мс
+#define REG_GATE_RESOLUTION				11	// Разрешение регистра драйверов затворов
 //
 #define REG_V_BAT_OFFSET				20	// Смещение оцифрованного напряжения батареи 1 (в тиках)
 #define REG_V_BAT_K						21	// Коэффициент пересчёта напряжения АЦП (в мВ) в напряжение батареи (в В) x1000
