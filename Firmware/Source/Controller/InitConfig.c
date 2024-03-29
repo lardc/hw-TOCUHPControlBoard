@@ -14,7 +14,10 @@ Boolean SysClk_Config()
 void EI_Config()
 {
 	EXTI_Config(EXTI_PA, EXTI_8, BOTH_TRIG, 0);
+	EXTI_Config(EXTI_PB, EXTI_15, BOTH_TRIG, 0);
+	//
 	EXTI_EnableInterrupt(EXTI9_5_IRQn, 0, true);
+	EXTI_EnableInterrupt(TIM1_BRK_TIM15_IRQn, 0, true);
 }
 //------------------------------------------------
 
@@ -27,9 +30,9 @@ void IO_Config()
 	// Аналаговые входы
 	GPIO_Config(GPIOA, Pin_3, Analog, NoPull, HighSpeed, NoPull);
 	
-	// Линия синхронизации (вход - выход)
-	GPIO_Config(GPIOA, Pin_8, Output, OpenDrain, HighSpeed, NoPull);
-	GPIO_SetState(GPIO_SYNC, true);
+	// Цифровые входы
+	GPIO_InitInput(GPIO_VOUT_STATE, NoPull);
+
 	
 	// Выходы
 	GPIO_InitPushPullOutput(GPIO_RCK);
@@ -42,6 +45,10 @@ void IO_Config()
 	GPIO_InitPushPullOutput(GPIO_HVPS_CTRL);
 	GPIO_InitPushPullOutput(GPIO_MW_CTRL);
 	
+	//Выходы с ОК
+	GPIO_InitOpenDrainOutput(GPIO_SYNC, NoPull);
+	GPIO_SetState(GPIO_SYNC, true);
+
 	// Альтернативные функции
 	GPIO_InitAltFunction(GPIO_ALT_CAN_RX, AltFn_9);
 	GPIO_InitAltFunction(GPIO_ALT_CAN_TX, AltFn_9);
