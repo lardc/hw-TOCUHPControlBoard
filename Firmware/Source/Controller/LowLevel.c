@@ -105,3 +105,9 @@ bool LL_GetSYNCState()
 	return GPIO_GetState(GPIO_SYNC);
 }
 //-----------------------------
+
+bool LL_GetVoutState()
+{
+	return GPIO_GetState(GPIO_VOUT_STATE);
+}
+//-----------------------------

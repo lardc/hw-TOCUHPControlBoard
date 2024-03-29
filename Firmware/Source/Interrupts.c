@@ -38,12 +38,18 @@ void EXTI9_5_IRQHandler()
 		else
 			Impulse = true;
 
-		INT_SyncTimeoutControl(Impulse);
 		CONTROL_HandleFanLogic(Impulse);
 		CONTROL_HandleLEDLogic(Impulse);
 	}
 
 	EXTI_FlagReset(EXTI_8);
+}
+//-----------------------------------------
+
+void TIM1_BRK_TIM15_IRQHandler()
+{
+	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+		INT_SyncTimeoutControl(!LL_GetVoutState());
 }
 //-----------------------------------------
 

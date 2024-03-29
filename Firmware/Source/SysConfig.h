@@ -20,7 +20,7 @@
 
 // Timers
 #define TIMER7_uS						1000		// в мкс
-#define TIMER3_uS						150			// в мкс
+#define TIMER3_uS						100			// в мкс
 // ----------------------------------------------
 
 // CAN

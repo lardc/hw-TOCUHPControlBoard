@@ -20,5 +20,6 @@ void LL_WriteWordToGateRegister(uint16_t Word);
 void LL_ForceSYNC(bool State);
 bool LL_GetSYNCState();
 void LL_FlipSpiRCK();
+bool LL_GetVoutState();
 
 #endif //__LOWLEVEL_H
