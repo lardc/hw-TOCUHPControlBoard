@@ -49,7 +49,7 @@ void EXTI9_5_IRQHandler()
 void TIM1_BRK_TIM15_IRQHandler()
 {
 	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
-		INT_SyncTimeoutControl(!LL_GetVoutState());
+		INT_SyncTimeoutControl(!LL_IsOutputVoltageHigh());
 }
 //-----------------------------------------
 

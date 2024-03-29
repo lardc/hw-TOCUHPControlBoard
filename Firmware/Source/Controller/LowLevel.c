@@ -106,7 +106,7 @@ bool LL_GetSYNCState()
 }
 //-----------------------------
 
-bool LL_GetVoutState()
+bool LL_IsOutputVoltageHigh()
 {
 	return GPIO_GetState(GPIO_VOUT_STATE);
 }
