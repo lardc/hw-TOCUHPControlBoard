@@ -39,7 +39,7 @@ static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 CapBatteryState CONTROL_CapBatteryState = CBS_PassiveDischarge;
 
 volatile Int64U CONTROL_TimeCounter = 0;
-Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
+Int64U CONTROL_ChargeTimeout = 0, CONTROL_SynchronizationTimeout = 0;
 Int64U CONTROL_PsBoardDisableTimeout = 0, CONTROL_AfterPulseTimeout = 0;
 
 // Forward functions
@@ -176,17 +176,22 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			{
 				if(CONTROL_State == DS_Ready)
 				{
-					if (CONTROL_CheckGateRegisterValue())
+					if(!LL_GetSYNCState())
 					{
-						DataTable[REG_OP_RESULT] = OPRESULT_NONE;
-						LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
-						LL_PSBoardOutput(false);
-						CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
-						CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
-						CONTROL_SetDeviceSubState(SS_WaitingSync);
+						if (CONTROL_CheckGateRegisterValue())
+						{
+							DataTable[REG_OP_RESULT] = OPRESULT_NONE;
+							LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+							LL_PSBoardOutput(false);
+							CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
+							CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
+							CONTROL_SetDeviceSubState(SS_WaitingSync);
+						}
+						else
+							CONTROL_SwitchToFault(DF_GATE_REGISTER);
 					}
 					else
-						CONTROL_SwitchToFault(DF_GATE_REGISTER);
+						CONTROL_SwitchToFault(DF_SYNC_LINE);
 				}
 				else
 					*pUserError = ERR_DEVICE_NOT_READY;
@@ -198,7 +203,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 				if(CONTROL_State == DS_Ready)
 				{
 					LL_ForceSYNC(true);
-					DELAY_US(100);
+					DELAY_US(90);
 					LL_ForceSYNC(false);
 				}
 				else
@@ -394,15 +399,31 @@ void CONTROL_HandleFanLogic(bool IsImpulse)
 
 void CONTROL_HandleLEDLogic(bool IsImpulse)
 {
-	if(IsImpulse)
+	static Int64U ExternalLampCounter = 0;
+
+	if(CONTROL_State != DS_None)
 	{
-		LL_ExternalLED(true);
-		CONTROL_LEDTimeout = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
-	}
-	else
-	{
-		if(CONTROL_TimeCounter > CONTROL_LEDTimeout)
-			LL_ExternalLED(false);
+		if(CONTROL_State == DS_Fault)
+		{
+			if(CONTROL_TimeCounter >= ExternalLampCounter)
+			{
+				LL_ToggleExternalLED();
+				ExternalLampCounter = CONTROL_TimeCounter + TIME_FAULT_LED_BLINK;
+			}
+		}
+		else
+			{
+				if(IsImpulse)
+				{
+					LL_ExternalLED(true);
+					ExternalLampCounter = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
+				}
+				else
+				{
+					if(CONTROL_TimeCounter >= ExternalLampCounter)
+						LL_ExternalLED(false);
+				}
+			}
 	}
 }
 //-----------------------------------------------
@@ -411,6 +432,7 @@ void CONTROL_SwitchToFault(Int16U Reason)
 {
 	CONTROL_ResetHardware();
 
+	CONTROL_SetDeviceSubState(SS_None);
 	CONTROL_SetDeviceState(DS_Fault);
 	DataTable[REG_FAULT_REASON] = Reason;
 }
@@ -431,10 +453,7 @@ void CONTROL_SetDeviceSubState(DeviceSubState NewSubState)
 
 bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState)
 {
-	if(CONTROL_SubState == NewSubState)
-		return true;
-	else
-		return false;
+	return (CONTROL_SubState == NewSubState) ? true : false;
 }
 //------------------------------------------
 
@@ -456,16 +475,37 @@ void CONTROL_WatchDogUpdate()
 
 void CONTROL_CurrentEmergencyStop(Int16U Reason)
 {
+	Impulse = false;
 	LL_FlipSpiRCK();
+
 	CONTROL_SwitchToFault(Reason);
 }
 //------------------------------------------
 
 void CONTROL_HandleSynchronizationTimeout()
 {
-	if(CONTROL_CheckDeviceSubState(SS_WaitingSync) && (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
+	if((CONTROL_CheckDeviceSubState(SS_WaitingSync) || CONTROL_CheckDeviceSubState(SS_StartPulse)) &&
+			(CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
 	{
-		CONTROL_SetDeviceSubState(SS_None);
 		LL_WriteToGateRegister(0);
+
+		if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+			CONTROL_SetDeviceSubState(SS_None);
+		else
+			CONTROL_SwitchToFault(DF_SYNC_LINE);
 	}
 }
+//------------------------------------------
+
+void CONTROL_FinishProcess()
+{
+	LL_WriteWordToGateRegister(0);
+	LL_FlipSpiRCK();
+
+	CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
+	CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT];
+
+	DataTable[REG_OP_RESULT] = OPRESULT_OK;
+	CONTROL_InitBatteryChargeProcess();
+}
+//------------------------------------------

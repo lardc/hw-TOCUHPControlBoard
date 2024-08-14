@@ -79,6 +79,7 @@
 #define DF_BATTERY						1	// Проблема заряда батареи
 #define DF_SYNC_TOO_LONG				2	// Превышена длительность импульса синхронизации
 #define DF_GATE_REGISTER				3	// Некорректный код регистра затворов
+#define DF_SYNC_LINE					4	// Некорректное состояние линии синхронизации
 
 // Problem
 #define PROBLEM_NONE					0

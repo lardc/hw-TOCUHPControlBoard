@@ -10,6 +10,7 @@ void LL_ToggleBoardLED();
 void LL_Fan(bool State);
 void LL_BatteryDischarge(bool State);
 void LL_ExternalLED(bool State);
+void LL_ToggleExternalLED();
 void LL_MeanWellRelay(bool State);
 void LL_PSBoardOutput(bool State);
 void LL_SoftSpiSRCK(bool State);

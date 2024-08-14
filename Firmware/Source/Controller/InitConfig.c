@@ -17,7 +17,7 @@ void EI_Config()
 	EXTI_Config(EXTI_PB, EXTI_15, BOTH_TRIG, 0);
 	//
 	EXTI_EnableInterrupt(EXTI9_5_IRQn, 0, true);
-	EXTI_EnableInterrupt(TIM1_BRK_TIM15_IRQn, 0, true);
+	EXTI_EnableInterrupt(EXTI15_10_IRQn, 0, true);
 }
 //------------------------------------------------
 
