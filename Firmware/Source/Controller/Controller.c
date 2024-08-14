@@ -15,6 +15,10 @@
 #include "BCCIxParams.h"
 #include "Delay.h"
 
+// Definitions
+//
+#define PWR_VOLTAGE_PREPARE_VALUE		0x01
+
 // Macro
 //
 #define ABS(a)	(((a) < 0) ? -(a) : (a))
@@ -181,7 +185,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 						if (CONTROL_CheckGateRegisterValue())
 						{
 							DataTable[REG_OP_RESULT] = OPRESULT_NONE;
-							LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+							LL_WriteToGateRegister(PWR_VOLTAGE_PREPARE_VALUE);
 							LL_PSBoardOutput(false);
 							CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
 							CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
