@@ -60,6 +60,7 @@
 #define REG_WARNING						195	// Регистр Warning
 #define REG_PROBLEM						196	// Регистр Problem
 #define REG_OP_RESULT					197	// Регистр результата операции
+#define REG_DEV_SUBSTATE				198
 //
 #define REG_ACTUAL_BAT_VOLTAGE			200	// Текущее напряжение на батарее (в В)
 // -----------------------------
