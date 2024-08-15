@@ -3,6 +3,15 @@
 #include "SysConfig.h"
 #include "BCCIxParams.h"
 
+// Definition
+//
+#define EXTI8_INTERRUPT_PRIORITY	28
+#define EXTI15_INTERRUPT_PRIORITY	30
+#define TIM3_INTERRUPT_PRIORITY		36
+#define USART1_INTERRUPT_PRIORITY	44
+#define CAN_INTERRUPT_PRIORITY		47
+
+
 // Functions
 //
 Boolean SysClk_Config()
@@ -18,6 +27,9 @@ void EI_Config()
 	//
 	EXTI_EnableInterrupt(EXTI9_5_IRQn, 0, true);
 	EXTI_EnableInterrupt(EXTI15_10_IRQn, 0, true);
+
+	NVIC_SetPriority(EXTI9_5_IRQn, EXTI8_INTERRUPT_PRIORITY);
+	NVIC_SetPriority(EXTI15_10_IRQn, EXTI15_INTERRUPT_PRIORITY);
 }
 //------------------------------------------------
 
@@ -63,6 +75,8 @@ void CAN_Config()
 	NCAN_Init(SYSCLK, CAN_BAUDRATE, FALSE);
 	NCAN_FIFOInterrupt(TRUE);
 	NCAN_FilterInit(0, CAN_SLAVE_FILTER_ID, CAN_SLAVE_NID_MASK);
+
+	NCAN_InterruptSetPriority(CAN_INTERRUPT_PRIORITY);
 }
 //------------------------------------------------
 
@@ -70,6 +84,7 @@ void UART_Config()
 {
 	USART_Init(USART1, SYSCLK, USART_BAUDRATE);
 	USART_Recieve_Interupt(USART1, 0, true);
+	NVIC_SetPriority(EXTI15_10_IRQn, USART1_INTERRUPT_PRIORITY);
 }
 //------------------------------------------------
 
@@ -97,6 +112,7 @@ void Timer3_Config()
 	TIM_Clock_En(TIM_3);
 	TIM_Config(TIM3, SYSCLK, TIMER3_uS);
 	TIM_Interupt(TIM3, 0, true);
+	NVIC_SetPriority(EXTI15_10_IRQn, TIM3_INTERRUPT_PRIORITY);
 	TIM_Stop(TIM3);
 }
 //------------------------------------------------
