@@ -22,7 +22,7 @@ void INT_SyncTimeoutControl(bool State);
 //
 void EXTI9_5_IRQHandler()
 {
-	if(LL_GetSYNCState() && CONTROL_CheckDeviceSubState(SS_WaitingSync))
+	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
 	{
 		Impulse = true;
 
@@ -34,7 +34,7 @@ void EXTI9_5_IRQHandler()
 	}
 	else
 	{
-		if(!LL_GetSYNCState() && CONTROL_CheckDeviceSubState(SS_StartPulse))
+		if(CONTROL_CheckDeviceSubState(SS_StartPulse))
 		{
 			Impulse = false;
 
