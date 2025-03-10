@@ -17,7 +17,8 @@ typedef enum __DeviceState
 typedef enum __DeviceSubState
 {
 	SS_None 			= 0,
-	SS_WaitingSync 		= 1
+	SS_WaitingSync 		= 1,
+	SS_StartPulse		= 2
 } DeviceSubState;
 
 // Variables
@@ -38,5 +39,6 @@ void CONTROL_SetDeviceSubState(DeviceSubState NewSubState);
 void CONTROL_InitBatteryChargeProcess();
 void CONTROL_HandleFanLogic(bool IsImpulse);
 void CONTROL_HandleLEDLogic(bool IsImpulse);
+void CONTROL_FinishProcess();
 
 #endif // __CONTROLLER_H

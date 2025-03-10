@@ -31,6 +31,12 @@ void LL_ExternalLED(bool State)
 }
 //-----------------------------
 
+void LL_ToggleExternalLED()
+{
+	GPIO_Toggle(GPIO_LED_EXT);
+}
+//-----------------------------
+
 void LL_MeanWellRelay(bool State)
 {
 	GPIO_SetState(GPIO_MW_CTRL, State);
@@ -102,7 +108,7 @@ void LL_ForceSYNC(bool State)
 
 bool LL_GetSYNCState()
 {
-	return GPIO_GetState(GPIO_SYNC);
+	return !GPIO_GetState(GPIO_SYNC);
 }
 //-----------------------------
 

@@ -24,32 +24,35 @@ void EXTI9_5_IRQHandler()
 {
 	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
 	{
-		if(LL_GetSYNCState())
-		{
-			Impulse = false;
+		Impulse = true;
 
-			CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
-			CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
-			CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT];
-
-			DataTable[REG_OP_RESULT] = OPRESULT_OK;
-			CONTROL_InitBatteryChargeProcess();
-		}
-		else
-			Impulse = true;
+		CONTROL_SetDeviceSubState(SS_StartPulse);
+		INT_SyncTimeoutControl(true);
 
 		CONTROL_HandleFanLogic(Impulse);
 		CONTROL_HandleLEDLogic(Impulse);
+	}
+	else
+	{
+		if(CONTROL_CheckDeviceSubState(SS_StartPulse))
+		{
+			Impulse = false;
+
+			INT_SyncTimeoutControl(false);
+			CONTROL_FinishProcess();
+		}
 	}
 
 	EXTI_FlagReset(EXTI_8);
 }
 //-----------------------------------------
 
-void TIM1_BRK_TIM15_IRQHandler()
+void EXTI15_10_IRQHandler()
 {
-	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+	if(CONTROL_CheckDeviceSubState(SS_StartPulse))
 		INT_SyncTimeoutControl(!LL_IsOutputVoltageHigh());
+
+	EXTI_FlagReset(EXTI_15);
 }
 //-----------------------------------------
 
@@ -57,10 +60,10 @@ void TIM3_IRQHandler()
 {
 	if(TIM_StatusCheck(TIM3))
 	{
-		INT_SyncTimeoutControl(false);
-
-		if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+		if(Impulse && !LL_IsOutputVoltageHigh())
 			CONTROL_CurrentEmergencyStop(DF_SYNC_TOO_LONG);
+
+		INT_SyncTimeoutControl(false);
 
 		TIM_StatusClear(TIM3);
 	}

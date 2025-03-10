@@ -7,7 +7,7 @@
 #include "Global.h"
 
 //Definitions
-#define BAT_VOLTAGE_MIN				0		// в В
+#define BAT_VOLTAGE_MIN				300		// в В
 #define BAT_VOLTAGE_MAX				1500	// в В
 #define BAT_VOLTAGE_DEF				500		// в В
 
