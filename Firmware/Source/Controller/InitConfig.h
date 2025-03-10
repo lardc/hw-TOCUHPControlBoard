@@ -14,5 +14,6 @@ void ADC_Init();
 void Timer7_Config();
 void Timer3_Config();
 void WatchDog_Config();
+void INITCFG_ConfigCAN(Int16U NodeID);
 
 #endif //__INITCONFIG_H
