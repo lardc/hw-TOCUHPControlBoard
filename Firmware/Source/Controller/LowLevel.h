@@ -21,5 +21,6 @@ void LL_ForceSYNC(bool State);
 bool LL_GetSYNCState();
 void LL_FlipSpiRCK();
 bool LL_IsOutputVoltageHigh();
+void LL_PulseSYNC();
 
 #endif //__LOWLEVEL_H

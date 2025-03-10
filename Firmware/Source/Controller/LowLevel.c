@@ -111,3 +111,11 @@ bool LL_IsOutputVoltageHigh()
 	return GPIO_GetState(GPIO_VOUT_STATE);
 }
 //-----------------------------
+
+void LL_PulseSYNC()
+{
+	LL_ForceSYNC(true);
+	DELAY_US(100);
+	LL_ForceSYNC(false);
+}
+//-----------------------------

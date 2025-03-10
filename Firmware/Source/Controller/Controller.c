@@ -186,6 +186,13 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 					if (CONTROL_CheckGateRegisterValue())
 					{
 						DataTable[REG_OP_RESULT] = OPRESULT_NONE;
+
+						if (DataTable[REG_PRE_PULSE])
+						{
+							LL_WriteToGateRegister(DataTable[REG_PRE_PULSE]);
+							LL_PulseSYNC();
+						}
+
 						LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
 						LL_PSBoardOutput(false);
 						CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
@@ -203,11 +210,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 		case ACT_SW_PULSE:
 			{
 				if(CONTROL_State == DS_Ready)
-				{
-					LL_ForceSYNC(true);
-					DELAY_US(100);
-					LL_ForceSYNC(false);
-				}
+					LL_PulseSYNC();
 				else
 					*pUserError = ERR_DEVICE_NOT_READY;
 			}
@@ -260,11 +263,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			break;
 			
 		case ACT_DBG_GATE_EN:
-			{
-				LL_ForceSYNC(true);
-				DELAY_US(100);
-				LL_ForceSYNC(false);
-			}
+			LL_PulseSYNC();
 			break;
 
 		default:
