@@ -40,7 +40,7 @@ static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 CapBatteryState CONTROL_CapBatteryState = CBS_PassiveDischarge;
 
 volatile Int64U CONTROL_TimeCounter = 0;
-Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
+Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0, CONTROL_PrePulseDelayTimeout = 0;
 Int64U CONTROL_PsBoardDisableTimeout = 0, CONTROL_AfterPulseTimeout = 0;
 
 // Forward functions
@@ -192,6 +192,8 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 						{
 							LL_WriteToGateRegister(DataTable[REG_PRE_PULSE]);
 							LL_PulseSYNC();
+							CONTROL_PrePulseDelayTimeout = CONTROL_TimeCounter + DataTable[REG_PRE_PULSE_DELAY];
+							CONTROL_SetDeviceState(DS_PrePulse);
 						}
 
 						LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
@@ -477,11 +479,6 @@ void CONTROL_HandleSynchronizationTimeout()
 		LL_WriteToGateRegister(0);
 	}
 }
-
-
-
-
-
-
+//------------------------------------------
 
 
