@@ -54,6 +54,7 @@ void CONTROL_ResetToDefaultState();
 void CONTROL_ResetHardware();
 bool CONTROL_CheckGateRegisterValue();
 void CONTROL_HandleSynchronizationTimeout();
+void CONTROL_HandlePrePulse();
 
 // Functions
 //
@@ -141,14 +142,14 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 					LL_MeanWellRelay(true);
 					CONTROL_InitBatteryChargeProcess();
 				}
-				else if(CONTROL_State != DS_Ready && CONTROL_State != DS_InProcess)
+				else if(CONTROL_State != DS_Ready && CONTROL_State != DS_BatteryCharge)
 					*pUserError = ERR_OPERATION_BLOCKED;
 			}
 			break;
 			
 		case ACT_DISABLE_POWER:
 			{
-				if(CONTROL_State == DS_Ready || CONTROL_State == DS_InProcess)
+				if(CONTROL_State == DS_Ready || CONTROL_State == DS_BatteryCharge)
 				{
 					CONTROL_ResetToDefaultState();
 				}
@@ -303,7 +304,7 @@ void CONTROL_InitBatteryChargeProcess()
 	TargetBatteryVoltage = DataTable[REG_VOLTAGE_SETPOINT];
 
 	CONTROL_CapBatteryState = CBS_PassiveDischarge;
-	CONTROL_SetDeviceState(DS_InProcess);
+	CONTROL_SetDeviceState(DS_BatteryCharge);
 	CONTROL_SetDeviceSubState(SS_None);
 }
 //------------------------------------------
@@ -318,7 +319,7 @@ void CONTROL_BatteryChargeLogic()
 	VoltageHysteresis = (float)DataTable[REG_VOLTAGE_HYST] / 10;
 	
 	// Поддержание напряжения на батарее
-	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready) && (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
+	if((CONTROL_State == DS_BatteryCharge || CONTROL_State == DS_Ready) && (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
 		switch(CONTROL_CapBatteryState)
 		{
@@ -361,7 +362,7 @@ void CONTROL_BatteryChargeLogic()
 	}
 
 	// Условие смены состояния
-	if(CONTROL_State == DS_InProcess)
+	if(CONTROL_State == DS_BatteryCharge)
 	{
 		if(VoltageReadyFlag && CONTROL_TimeCounter > CONTROL_AfterPulseTimeout)
 			CONTROL_SetDeviceState(DS_Ready);
@@ -476,3 +477,11 @@ void CONTROL_HandleSynchronizationTimeout()
 		LL_WriteToGateRegister(0);
 	}
 }
+
+
+
+
+
+
+
+
