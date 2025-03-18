@@ -123,6 +123,7 @@ void CONTROL_Idle()
 	CONTROL_BatteryChargeLogic();
 	CONTROL_HandleLEDLogic(Impulse);
 	CONTROL_HandleSynchronizationTimeout();
+	CONTROL_HandlePrePulse();
 
 	DEVPROFILE_ProcessRequests();
 	CONTROL_WatchDogUpdate();
@@ -282,13 +283,13 @@ bool CONTROL_CheckGateRegisterValue()
 	float CurrentPerLSB = 0;
 	float CurrentPerBit = 0;
 
-	if(DataTable[REG_GATE_REGISTER] < pow(2, DataTable[REG_GATE_RESOLUTION]))
+	if(DataTable[REG_GATE_REGISTER] < powf(2, DataTable[REG_GATE_RESOLUTION]))
 	{
 		CurrentPerLSB = (float)DataTable[REG_VOLTAGE_SETPOINT] / (float)DataTable[REG_RESISTANCE_PER_LSB] / 100;
 
 		for (int i = 0; i < DataTable[REG_GATE_RESOLUTION]; i++)
 		{
-			CurrentPerBit = CurrentPerLSB * pow(2, i);
+			CurrentPerBit = CurrentPerLSB * powf(2, i);
 
 			if ((CurrentPerBit > DataTable[REG_MAX_CURRENT_PER_BIT]) && (DataTable[REG_GATE_REGISTER] & (1 << i)))
 				return false;
@@ -481,4 +482,8 @@ void CONTROL_HandleSynchronizationTimeout()
 }
 //------------------------------------------
 
-
+void CONTROL_HandlePrePulse()
+{
+	if (CONTROL_State == DS_PrePulse && (CONTROL_TimeCounter > CONTROL_PrePulseDelayTimeout))
+		CONTROL_SetDeviceState(DS_Ready);
+}
