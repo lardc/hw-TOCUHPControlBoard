@@ -22,7 +22,7 @@ void INT_SyncTimeoutControl(bool State);
 //
 void EXTI9_5_IRQHandler()
 {
-	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+	if(CONTROL_GetSubState() == SS_WaitingSync)
 	{
 		if(LL_GetSYNCState())
 		{
@@ -48,7 +48,7 @@ void EXTI9_5_IRQHandler()
 
 void TIM1_BRK_TIM15_IRQHandler()
 {
-	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+	if(CONTROL_GetSubState() == SS_WaitingSync)
 		INT_SyncTimeoutControl(!LL_IsOutputVoltageHigh());
 }
 //-----------------------------------------
@@ -59,7 +59,7 @@ void TIM3_IRQHandler()
 	{
 		INT_SyncTimeoutControl(false);
 
-		if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+		if(CONTROL_GetSubState() == SS_WaitingSync)
 			CONTROL_CurrentEmergencyStop(DF_SYNC_TOO_LONG);
 
 		TIM_StatusClear(TIM3);

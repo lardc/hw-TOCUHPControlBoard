@@ -440,12 +440,9 @@ void CONTROL_SetDeviceSubState(DeviceSubState NewSubState)
 }
 //------------------------------------------
 
-bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState)
+DeviceSubState CONTROL_GetSubState()
 {
-	if(CONTROL_SubState == NewSubState)
-		return true;
-	else
-		return false;
+	return CONTROL_SubState;
 }
 //------------------------------------------
 
@@ -474,7 +471,7 @@ void CONTROL_CurrentEmergencyStop(Int16U Reason)
 
 void CONTROL_HandleSynchronizationTimeout()
 {
-	if(CONTROL_CheckDeviceSubState(SS_WaitingSync) && (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
+	if(CONTROL_SubState == SS_WaitingSync && (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
 	{
 		CONTROL_SetDeviceSubState(SS_None);
 		LL_WriteToGateRegister(0);

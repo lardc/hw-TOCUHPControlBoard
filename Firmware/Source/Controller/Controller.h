@@ -33,7 +33,7 @@ extern Int64U CONTROL_PsBoardDisableTimeout;
 void CONTROL_Init();
 void CONTROL_Idle();
 void CONTROL_CurrentEmergencyStop(Int16U Reason);
-bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState);
+DeviceSubState CONTROL_GetSubState();
 void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SetDeviceSubState(DeviceSubState NewSubState);
 void CONTROL_InitBatteryChargeProcess();

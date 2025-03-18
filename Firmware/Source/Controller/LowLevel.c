@@ -3,6 +3,7 @@
 // Include
 #include "Board.h"
 #include "Delay.h"
+#include "DataTable.h"
 
 // Functions
 //
@@ -108,14 +109,14 @@ bool LL_GetSYNCState()
 
 bool LL_IsOutputVoltageHigh()
 {
-	return GPIO_GetState(GPIO_VOUT_STATE);
+	return DataTable[REG_USE_OUT_VOLTAGE_MONITOR] ? GPIO_GetState(GPIO_VOUT_STATE) : FALSE;
 }
 //-----------------------------
 
 void LL_PulseSYNC()
 {
 	LL_ForceSYNC(true);
-	DELAY_US(100);
+	DELAY_US(90);
 	LL_ForceSYNC(false);
 }
 //-----------------------------
