@@ -322,7 +322,7 @@ void CONTROL_BatteryChargeLogic()
 	VoltageHysteresis = (float)DataTable[REG_VOLTAGE_HYST] / 10;
 	
 	// Поддержание напряжения на батарее
-	if((CONTROL_State == DS_BatteryCharge || CONTROL_State == DS_Ready) && (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
+	if((CONTROL_State == DS_BatteryCharge || CONTROL_State == DS_Ready || CONTROL_State == DS_PrePulse) && (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
 		switch(CONTROL_CapBatteryState)
 		{
