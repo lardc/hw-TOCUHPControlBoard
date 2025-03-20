@@ -11,7 +11,8 @@ typedef enum __DeviceState
 	DS_Fault 			= 1,
 	DS_Disabled 		= 2,
 	DS_Ready 			= 3,
-	DS_InProcess 		= 4
+	DS_BatteryCharge 	= 4,
+	DS_PrePulse 		= 5
 } DeviceState;
 
 typedef enum __DeviceSubState
@@ -33,7 +34,7 @@ extern Int64U CONTROL_PsBoardDisableTimeout;
 void CONTROL_Init();
 void CONTROL_Idle();
 void CONTROL_CurrentEmergencyStop(Int16U Reason);
-bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState);
+DeviceSubState CONTROL_GetSubState();
 void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SetDeviceSubState(DeviceSubState NewSubState);
 void CONTROL_InitBatteryChargeProcess();

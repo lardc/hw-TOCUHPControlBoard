@@ -40,7 +40,7 @@ static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 CapBatteryState CONTROL_CapBatteryState = CBS_PassiveDischarge;
 
 volatile Int64U CONTROL_TimeCounter = 0;
-Int64U CONTROL_ChargeTimeout = 0, CONTROL_SynchronizationTimeout = 0;
+Int64U CONTROL_ChargeTimeout = 0, CONTROL_SynchronizationTimeout = 0, CONTROL_PrePulseDelayTimeout = 0;
 Int64U CONTROL_PsBoardDisableTimeout = 0, CONTROL_AfterPulseTimeout = 0;
 
 // Forward functions
@@ -54,6 +54,7 @@ void CONTROL_ResetToDefaultState();
 void CONTROL_ResetHardware();
 bool CONTROL_CheckGateRegisterValue();
 void CONTROL_HandleSynchronizationTimeout();
+void CONTROL_HandlePrePulse();
 
 // Functions
 //
@@ -122,6 +123,7 @@ void CONTROL_Idle()
 	CONTROL_BatteryChargeLogic();
 	CONTROL_HandleLEDLogic(Impulse);
 	CONTROL_HandleSynchronizationTimeout();
+	CONTROL_HandlePrePulse();
 
 	DEVPROFILE_ProcessRequests();
 	CONTROL_WatchDogUpdate();
@@ -141,14 +143,14 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 					LL_MeanWellRelay(true);
 					CONTROL_InitBatteryChargeProcess();
 				}
-				else if(CONTROL_State != DS_Ready && CONTROL_State != DS_InProcess)
+				else if(CONTROL_State != DS_Ready && CONTROL_State != DS_BatteryCharge)
 					*pUserError = ERR_OPERATION_BLOCKED;
 			}
 			break;
 			
 		case ACT_DISABLE_POWER:
 			{
-				if(CONTROL_State == DS_Ready || CONTROL_State == DS_InProcess)
+				if(CONTROL_State == DS_Ready || CONTROL_State == DS_BatteryCharge)
 				{
 					CONTROL_ResetToDefaultState();
 				}
@@ -198,6 +200,8 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 							CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
 							CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
 							CONTROL_SetDeviceSubState(SS_WaitingSync);
+							CONTROL_PrePulseDelayTimeout = CONTROL_TimeCounter + DataTable[REG_PRE_PULSE_DELAY];
+							CONTROL_SetDeviceState(DS_PrePulse);
 						}
 						else
 							CONTROL_SwitchToFault(DF_GATE_REGISTER);
@@ -282,13 +286,13 @@ bool CONTROL_CheckGateRegisterValue()
 	float CurrentPerLSB = 0;
 	float CurrentPerBit = 0;
 
-	if(DataTable[REG_GATE_REGISTER] < pow(2, DataTable[REG_GATE_RESOLUTION]))
+	if(DataTable[REG_GATE_REGISTER] < powf(2, DataTable[REG_GATE_RESOLUTION]))
 	{
 		CurrentPerLSB = (float)DataTable[REG_VOLTAGE_SETPOINT] / (float)DataTable[REG_RESISTANCE_PER_LSB] / 100;
 
 		for (int i = 0; i < DataTable[REG_GATE_RESOLUTION]; i++)
 		{
-			CurrentPerBit = CurrentPerLSB * pow(2, i);
+			CurrentPerBit = CurrentPerLSB * powf(2, i);
 
 			if ((CurrentPerBit > DataTable[REG_MAX_CURRENT_PER_BIT]) && (DataTable[REG_GATE_REGISTER] & (1 << i)))
 				return false;
@@ -306,7 +310,7 @@ void CONTROL_InitBatteryChargeProcess()
 	TargetBatteryVoltage = DataTable[REG_VOLTAGE_SETPOINT];
 
 	CONTROL_CapBatteryState = CBS_PassiveDischarge;
-	CONTROL_SetDeviceState(DS_InProcess);
+	CONTROL_SetDeviceState(DS_BatteryCharge);
 	CONTROL_SetDeviceSubState(SS_None);
 }
 //------------------------------------------
@@ -321,7 +325,8 @@ void CONTROL_BatteryChargeLogic()
 	VoltageHysteresis = (float)DataTable[REG_VOLTAGE_HYST] / 10;
 	
 	// Поддержание напряжения на батарее
-	if((CONTROL_State == DS_InProcess || CONTROL_State == DS_Ready) && (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
+	if((CONTROL_State == DS_BatteryCharge || CONTROL_State == DS_Ready || CONTROL_State == DS_PrePulse)
+			&& (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
 		switch(CONTROL_CapBatteryState)
 		{
@@ -364,7 +369,7 @@ void CONTROL_BatteryChargeLogic()
 	}
 
 	// Условие смены состояния
-	if(CONTROL_State == DS_InProcess)
+	if(CONTROL_State == DS_BatteryCharge)
 	{
 		if(VoltageReadyFlag && CONTROL_TimeCounter > CONTROL_AfterPulseTimeout)
 			CONTROL_SetDeviceState(DS_Ready);
@@ -456,9 +461,9 @@ void CONTROL_SetDeviceSubState(DeviceSubState NewSubState)
 }
 //------------------------------------------
 
-bool CONTROL_CheckDeviceSubState(DeviceSubState NewSubState)
+DeviceSubState CONTROL_GetSubState()
 {
-	return (CONTROL_SubState == NewSubState) ? true : false;
+	return CONTROL_SubState;
 }
 //------------------------------------------
 
@@ -489,8 +494,7 @@ void CONTROL_CurrentEmergencyStop(Int16U Reason)
 
 void CONTROL_HandleSynchronizationTimeout()
 {
-	if((CONTROL_CheckDeviceSubState(SS_WaitingSync) || CONTROL_CheckDeviceSubState(SS_StartPulse)) &&
-			(CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
+	if((CONTROL_SubState == SS_WaitingSync || CONTROL_SubState == SS_StartPulse) && (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
 	{
 		LL_WriteToGateRegister(0);
 
@@ -499,6 +503,13 @@ void CONTROL_HandleSynchronizationTimeout()
 		else
 			CONTROL_SwitchToFault(DF_SYNC_LINE);
 	}
+}
+//------------------------------------------
+
+void CONTROL_HandlePrePulse()
+{
+	if (CONTROL_State == DS_PrePulse && (CONTROL_TimeCounter > CONTROL_PrePulseDelayTimeout))
+		CONTROL_SetDeviceState(DS_Ready);
 }
 //------------------------------------------
 
