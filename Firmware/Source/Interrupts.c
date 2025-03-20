@@ -22,25 +22,27 @@ void INT_SyncTimeoutControl(bool State);
 //
 void EXTI9_5_IRQHandler()
 {
-	if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+	switch (CONTROL_GetSubState())
 	{
-		Impulse = true;
+		case SS_WaitingSync:
+			Impulse = true;
 
-		CONTROL_SetDeviceSubState(SS_StartPulse);
-		INT_SyncTimeoutControl(true);
+			CONTROL_SetDeviceSubState(SS_StartPulse);
+			INT_SyncTimeoutControl(true);
 
-		CONTROL_HandleFanLogic(Impulse);
-		CONTROL_HandleLEDLogic(Impulse);
-	}
-	else
-	{
-		if(CONTROL_CheckDeviceSubState(SS_StartPulse))
-		{
+			CONTROL_HandleFanLogic(Impulse);
+			CONTROL_HandleLEDLogic(Impulse);
+			break;
+
+		case SS_StartPulse:
 			Impulse = false;
 
 			INT_SyncTimeoutControl(false);
 			CONTROL_FinishProcess();
-		}
+			break;
+
+		case SS_None:
+			break;
 	}
 
 	EXTI_FlagReset(EXTI_8);
@@ -49,7 +51,7 @@ void EXTI9_5_IRQHandler()
 
 void EXTI15_10_IRQHandler()
 {
-	if(CONTROL_CheckDeviceSubState(SS_StartPulse))
+	if(CONTROL_GetSubState() == SS_StartPulse)
 		INT_SyncTimeoutControl(!LL_IsOutputVoltageHigh());
 
 	EXTI_FlagReset(EXTI_15);
