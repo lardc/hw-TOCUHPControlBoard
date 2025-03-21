@@ -494,11 +494,12 @@ void CONTROL_CurrentEmergencyStop(Int16U Reason)
 
 void CONTROL_HandleSynchronizationTimeout()
 {
-	if((CONTROL_SubState == SS_WaitingSync || CONTROL_SubState == SS_StartPulse) && (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
+	if((CONTROL_SubState == SS_WaitingSync || CONTROL_SubState == SS_StartPulse)
+			&& (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
 	{
 		LL_WriteToGateRegister(0);
 
-		if(CONTROL_CheckDeviceSubState(SS_WaitingSync))
+		if(CONTROL_SubState == SS_WaitingSync)
 			CONTROL_SetDeviceSubState(SS_None);
 		else
 			CONTROL_SwitchToFault(DF_SYNC_LINE);
