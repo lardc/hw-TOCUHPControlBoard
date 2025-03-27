@@ -41,5 +41,6 @@ void CONTROL_InitBatteryChargeProcess();
 void CONTROL_HandleFanLogic(bool IsImpulse);
 void CONTROL_HandleLEDLogic(bool IsImpulse);
 void CONTROL_FinishProcess();
+void CONTROL_SwitchToProblem(Int16U Reason);
 
 #endif // __CONTROLLER_H

@@ -51,7 +51,7 @@ void Delay_mS(uint32_t Delay);
 void CONTROL_WatchDogUpdate();
 void CONTROL_BatteryChargeLogic();
 void CONTROL_ResetToDefaultState();
-void CONTROL_ResetHardware();
+void CONTROL_ResetHardware(bool Discharge);
 bool CONTROL_CheckGateRegisterValue();
 void CONTROL_HandleSynchronizationTimeout();
 void CONTROL_HandlePrePulse();
@@ -99,22 +99,24 @@ void CONTROL_ResetToDefaultState()
 	DEVPROFILE_ResetScopes(0);
 	DEVPROFILE_ResetEPReadState();
 
-	CONTROL_ResetHardware();
+	CONTROL_ResetHardware(true);
 	CONTROL_SetDeviceState(DS_None);
 	CONTROL_SetDeviceSubState(SS_None);
 }
 //------------------------------------------
 
-void CONTROL_ResetHardware()
+void CONTROL_ResetHardware(bool Discharge)
 {
 	LL_ExternalLED(false);
-	LL_MeanWellRelay(false);
 	LL_PSBoardOutput(false);
 	LL_ForceSYNC(false);
-	//
-	LL_BatteryDischarge(true);
-
 	LL_WriteToGateRegister(0);
+
+	if(Discharge)
+	{
+		LL_MeanWellRelay(false);
+		LL_BatteryDischarge(true);
+	}
 }
 //------------------------------------------
 
@@ -204,10 +206,10 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 							CONTROL_SetDeviceState(DS_PrePulse);
 						}
 						else
-							CONTROL_SwitchToFault(DF_GATE_REGISTER);
+							CONTROL_SwitchToProblem(PROBLEM_GATE_REGISTER);
 					}
 					else
-						CONTROL_SwitchToFault(DF_SYNC_LINE);
+						CONTROL_SwitchToProblem(PROBLEM_SYNC_LINE);
 				}
 				else
 					*pUserError = ERR_DEVICE_NOT_READY;
@@ -421,29 +423,40 @@ void CONTROL_HandleLEDLogic(bool IsImpulse)
 			}
 		}
 		else
+		{
+			if(IsImpulse)
 			{
-				if(IsImpulse)
-				{
-					LL_ExternalLED(true);
-					ExternalLampCounter = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
-				}
-				else
-				{
-					if(CONTROL_TimeCounter >= ExternalLampCounter)
-						LL_ExternalLED(false);
-				}
+				LL_ExternalLED(true);
+				ExternalLampCounter = CONTROL_TimeCounter + TIME_EXT_LED_BLINK;
 			}
+			else
+			{
+				if(CONTROL_TimeCounter >= ExternalLampCounter)
+					LL_ExternalLED(false);
+			}
+		}
 	}
 }
 //-----------------------------------------------
 
 void CONTROL_SwitchToFault(Int16U Reason)
 {
-	CONTROL_ResetHardware();
+	CONTROL_ResetHardware(true);
 
 	CONTROL_SetDeviceSubState(SS_None);
 	CONTROL_SetDeviceState(DS_Fault);
 	DataTable[REG_FAULT_REASON] = Reason;
+}
+//------------------------------------------
+
+void CONTROL_SwitchToProblem(Int16U Reason)
+{
+	CONTROL_ResetHardware(false);
+
+	CONTROL_SetDeviceSubState(SS_None);
+	CONTROL_SetDeviceState(DS_Ready);
+	DataTable[REG_PROBLEM] = Reason;
+	DataTable[REG_OP_RESULT] = OPRESULT_FAIL;
 }
 //------------------------------------------
 
@@ -502,7 +515,7 @@ void CONTROL_HandleSynchronizationTimeout()
 		if(CONTROL_SubState == SS_WaitingSync)
 			CONTROL_SetDeviceSubState(SS_None);
 		else
-			CONTROL_SwitchToFault(DF_SYNC_LINE);
+			CONTROL_SwitchToProblem(PROBLEM_SYNC_LINE);
 	}
 }
 //------------------------------------------

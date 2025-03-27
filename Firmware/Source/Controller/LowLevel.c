@@ -72,9 +72,7 @@ void LL_SoftSpiData(bool State)
 void LL_WriteToGateRegister(uint16_t Data)
 {
 	LL_WriteWordToGateRegister(Data);
-
 	LL_FlipSpiRCK();
-
 	LL_WriteWordToGateRegister(0);
 }
 //-----------------------------

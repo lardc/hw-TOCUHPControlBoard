@@ -63,7 +63,7 @@ void TIM3_IRQHandler()
 	if(TIM_StatusCheck(TIM3))
 	{
 		if(Impulse && !LL_IsOutputVoltageHigh())
-			CONTROL_CurrentEmergencyStop(DF_SYNC_TOO_LONG);
+			CONTROL_SwitchToProblem(PROBLEM_SYNC_TOO_LONG);
 
 		INT_SyncTimeoutControl(false);
 

@@ -83,12 +83,12 @@
 //  Fault and disable codes
 #define DF_NONE							0
 #define DF_BATTERY						1	// Проблема заряда батареи
-#define DF_SYNC_TOO_LONG				2	// Превышена длительность импульса синхронизации
-#define DF_GATE_REGISTER				3	// Некорректный код регистра затворов
-#define DF_SYNC_LINE					4	// Некорректное состояние линии синхронизации
 
 // Problem
 #define PROBLEM_NONE					0
+#define PROBLEM_SYNC_TOO_LONG			1	// Превышена длительность импульса синхронизации
+#define PROBLEM_GATE_REGISTER			2	// Некорректный код регистра затворов
+#define PROBLEM_SYNC_LINE				3	// Некорректное состояние линии синхронизации
 
 //  Warning
 #define WARNING_NONE					0
