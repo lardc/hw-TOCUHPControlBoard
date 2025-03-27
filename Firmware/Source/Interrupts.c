@@ -29,7 +29,9 @@ void EXTI9_5_IRQHandler()
 
 			CONTROL_SetDeviceSubState(SS_StartPulse);
 			INT_SyncTimeoutControl(true);
-			LL_FlipSpiRCK();
+
+			if(DataTable[REG_PRE_PULSE])
+				LL_FlipSpiRCK();
 
 			CONTROL_HandleFanLogic(Impulse);
 			CONTROL_HandleLEDLogic(Impulse);
