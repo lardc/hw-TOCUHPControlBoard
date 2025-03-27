@@ -192,10 +192,12 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 						if (CONTROL_CheckGateRegisterValue())
 						{
 							DataTable[REG_OP_RESULT] = OPRESULT_NONE;
-							if (DataTable[REG_PRE_PULSE])
+							if(DataTable[REG_PRE_PULSE])
 							{
-								LL_WriteToGateRegister(DataTable[REG_PRE_PULSE]);
-								LL_PulseSYNC();
+								LL_WriteWordToGateRegister(DataTable[REG_PRE_PULSE]);
+								LL_FlipSpiRCK();
+								LL_WriteWordToGateRegister(DataTable[REG_GATE_REGISTER]);
+								LL_ForceSYNC(true);
 							}
 							LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
 							LL_PSBoardOutput(false);
