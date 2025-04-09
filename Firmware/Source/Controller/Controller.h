@@ -30,6 +30,9 @@ extern Int64U CONTROL_AfterPulseTimeout;
 extern Int64U CONTROL_SynchronizationTimeout;
 extern Int64U CONTROL_PsBoardDisableTimeout;
 
+extern Int16U CONTROL_ExtInfoCounter;
+extern Int16U CONTROL_ExtInfoData[];
+
 // Functions
 void CONTROL_Init();
 void CONTROL_Idle();
