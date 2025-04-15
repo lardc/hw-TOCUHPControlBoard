@@ -29,7 +29,7 @@
 #define ACT_JSON_TO_EP					342	// Выполнить чтение шаблона JSON в EP
 // -----------------------------
 // EP
-#define EP16_ExtInfoData				1	// Diag data drom flash
+#define EP16_ExtInfoData				20	// Diag data drom flash
 
 // Регистры
 // Сохраняемые регистры

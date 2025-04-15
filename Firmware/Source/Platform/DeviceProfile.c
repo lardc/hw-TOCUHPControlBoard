@@ -81,7 +81,7 @@ void DEVPROFILE_Init(xCCI_FUNC_CallbackAction SpecializedDispatch, Boolean* Mask
 
 	// Init interface driver
 	SCCI_Init(&DEVICE_RS232_Interface, &RS232_IOConfig, &X_ServiceConfig, (pInt16U)DataTable,
-		DATA_TABLE_SIZE, SCCI_TIMEOUT_TICKS, 0);
+		DATA_TABLE_SIZE, SCCI_TIMEOUT_TICKS, &RS232_EPState);
 	BCCI_InitWithNodeID(&DEVICE_CAN_Interface, &CAN_IOConfig, &X_ServiceConfig, (pInt16U)DataTable, DATA_TABLE_SIZE,
 			&CAN_EPState, NodeID);
 	// Set write protection
