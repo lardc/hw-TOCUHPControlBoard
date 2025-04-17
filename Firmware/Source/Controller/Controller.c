@@ -512,8 +512,7 @@ void CONTROL_HandleSynchronizationTimeout()
 
 void CONTROL_FinishProcess()
 {
-	LL_WriteWordToGateRegister(0);
-	LL_FlipSpiRCK();
+	LL_WriteToGateRegister(0);
 
 	CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
 	CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT];

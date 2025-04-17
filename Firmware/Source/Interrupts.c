@@ -62,10 +62,10 @@ void TIM3_IRQHandler()
 {
 	if(TIM_StatusCheck(TIM3))
 	{
+		INT_SyncTimeoutControl(false);
+
 		if(Impulse && !LL_IsOutputVoltageHigh())
 			CONTROL_SwitchToProblem(PROBLEM_SYNC_TOO_LONG);
-
-		INT_SyncTimeoutControl(false);
 
 		TIM_StatusClear(TIM3);
 	}
