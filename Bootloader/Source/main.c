@@ -5,13 +5,12 @@
 #include "Interrupts.h"
 #include "SysConfig.h"
 #include "BoardConfig.h"
-#include "BCCIxParams.h"
+
 
 // Forward functions
 //
 void SysClk_Config();
 void IO_Config();
-void CAN_Config();
 void UART_Config();
 void Timer2_Config();
 void WatchDog_Config();
@@ -27,7 +26,6 @@ int main()
 	// Init peripherals
 	SysClk_Config();
 	IO_Config();
-	CAN_Config();
 	UART_Config();
 	Timer2_Config();
 	WatchDog_Config();
@@ -71,15 +69,6 @@ void IO_Config()
 	GPIO_Config(GPIOA, Pin_12, AltFn, PushPull, HighSpeed, NoPull); //PA12(CAN TX)
 	GPIO_AltFn(GPIOA, Pin_12, AltFn_9);
 	
-}
-//--------------------------------------------
-
-void CAN_Config()
-{
-	RCC_CAN_Clk_EN(CAN_1_ClkEN);
-	NCAN_Init(SYSCLK, CAN_BAUDRATE, FALSE);
-	NCAN_FIFOInterrupt(TRUE);
-	NCAN_FilterInit(0, CAN_SLAVE_FILTER_ID, CAN_SLAVE_NID_MASK);
 }
 //--------------------------------------------
 

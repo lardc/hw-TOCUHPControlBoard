@@ -68,17 +68,6 @@ void IO_Config()
 }
 //------------------------------------------------
 
-void CAN_Config()
-{
-	RCC_CAN_Clk_EN(CAN_1_ClkEN);
-	NCAN_Init(SYSCLK, CAN_BAUDRATE, FALSE);
-	NCAN_FIFOInterrupt(TRUE);
-	NCAN_FilterInit(0, CAN_SLAVE_FILTER_ID, CAN_SLAVE_NID_MASK);
-
-	NCAN_InterruptSetPriority(CAN_INTERRUPT_PRIORITY);
-}
-//------------------------------------------------
-
 void UART_Config()
 {
 	USART_Init(USART1, SYSCLK, USART_BAUDRATE);

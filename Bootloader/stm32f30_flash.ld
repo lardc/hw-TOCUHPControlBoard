@@ -44,7 +44,8 @@ _Min_Stack_Size = 0x100; /* required amount of stack */
 /* Specify the memory areas */
 MEMORY
 {
-  FLASH (r)       : ORIGIN = 0x08000000, LENGTH = 0x08000 /* 32K */ 
+  FLASH (r)       : ORIGIN = 0x08000000, LENGTH = 0x07800 /* 30K */
+  BOOT_DT (r)	  : ORIGIN = 0x08007800, LENGTH = 0x00800 /* 2K */
   MAIN_FL (rx)    : ORIGIN = 0x08008000, LENGTH = 0x17800 /* 94K */
   DATA_TAB (r)    : ORIGIN = 0x0801F800, LENGTH = 0x00800 /* 2K */
   

@@ -17,9 +17,6 @@ int main()
 	// Настройка внешних прерываний
 	EI_Config();
 	
-	// Настройка CAN
-	CAN_Config();
-	
 	// Настройка UART
 	UART_Config();
 	

@@ -30,6 +30,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>Source/BCCIxParams.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/BootLoader/Root/BCCIxParams.h</locationURI>
+		</link>
+		<link>
 			<name>Source/Controller</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
