@@ -28,8 +28,6 @@
 #define ACT_JSON_INIT_READ				341	// Инициализация начала считывания JSON
 #define ACT_JSON_TO_EP					342	// Выполнить чтение шаблона JSON в EP
 // -----------------------------
-// EP
-#define EP16_ExtInfoData				20	// Diag data drom flash
 
 // Регистры
 // Сохраняемые регистры
@@ -102,5 +100,8 @@
 #define ERR_OPERATION_BLOCKED			2	//  Операция не может быть выполнена в текущем состоянии устройства
 #define ERR_DEVICE_NOT_READY			3	//  Устройство не готово для смены состояния
 #define ERR_WRONG_PWD					4	//  Неправильный ключ
+
+// EP
+#define EP16_ExtInfoData				20	// Diag data drom flash
 
 #endif //  __DEV_OBJ_DIC_H
