@@ -13,6 +13,7 @@
 #include "Constraints.h"
 #include "ZwNCAN.h"
 #include "ZwSCI.h"
+#include "FormatOutputJSON.h"
 
 // Types
 //
@@ -80,7 +81,7 @@ void DEVPROFILE_Init(xCCI_FUNC_CallbackAction SpecializedDispatch, Boolean* Mask
 
 	// Init interface driver
 	SCCI_Init(&DEVICE_RS232_Interface, &RS232_IOConfig, &X_ServiceConfig, (pInt16U)DataTable,
-		DATA_TABLE_SIZE, SCCI_TIMEOUT_TICKS, 0);
+		DATA_TABLE_SIZE, SCCI_TIMEOUT_TICKS, &RS232_EPState);
 	BCCI_InitWithNodeID(&DEVICE_CAN_Interface, &CAN_IOConfig, &X_ServiceConfig, (pInt16U)DataTable, DATA_TABLE_SIZE,
 			&CAN_EPState, NodeID);
 	// Set write protection
@@ -178,6 +179,20 @@ static Boolean DEVPROFILE_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_BOOT_LOADER_REQUEST:
 			BOOT_LOADER_VARIABLE = BOOT_LOADER_REQUEST;
 			break;
+
+		case ACT_JSON_INIT_READ:
+			JSON_ResetStateMachine();
+			break;
+
+		case ACT_JSON_TO_EP:
+			{
+				DEVPROFILE_ResetEPReadState();
+				DEVPROFILE_ResetScopes(0);
+				for(CONTROL_ExtInfoCounter = 0; CONTROL_ExtInfoCounter < VALUES_EXT_INFO_SIZE;)
+					CONTROL_ExtInfoData[CONTROL_ExtInfoCounter++] = JSON_ReadSymbol();
+			}
+			break;
+
 		default:
 			return (ControllerDispatchFunction) ? ControllerDispatchFunction(ActionID, UserError) : FALSE;
 	}

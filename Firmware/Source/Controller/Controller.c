@@ -43,6 +43,9 @@ volatile Int64U CONTROL_TimeCounter = 0;
 Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
 Int64U CONTROL_PsBoardDisableTimeout = 0, CONTROL_AfterPulseTimeout = 0;
 
+Int16U CONTROL_ExtInfoCounter = 0;
+Int16U CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE] = {0};
+
 // Forward functions
 //
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError);
@@ -60,10 +63,10 @@ void CONTROL_HandleSynchronizationTimeout();
 void CONTROL_Init()
 {
 	// Переменные для конфигурации EndPoint
-	Int16U EPIndexes[EP_COUNT];
-	Int16U EPSized[EP_COUNT];
-	pInt16U EPCounters[EP_COUNT];
-	pInt16U EPDatas[EP_COUNT];
+	Int16U EPIndexes[EP_COUNT] = {EP16_ExtInfoData};
+	Int16U EPSized[EP_COUNT] = {VALUES_EXT_INFO_SIZE};
+	pInt16U EPCounters[EP_COUNT] = {(pInt16U)&CONTROL_ExtInfoCounter};
+	pInt16U EPDatas[EP_COUNT] = {(pInt16U)CONTROL_ExtInfoData};
 	
 	// Конфигурация сервиса работы DataTable и EPROM
 	EPROMServiceConfig EPROMService = {(FUNC_EPROM_WriteValues)&NFLASH_WriteDT, (FUNC_EPROM_ReadValues)&NFLASH_ReadDT};
