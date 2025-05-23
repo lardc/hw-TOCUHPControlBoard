@@ -52,8 +52,8 @@
 #define GATE_RESOLUTION_MAX			11
 #define GATE_RESOLUTION_DEF			9
 
-#define V_BAT_OFFSET_MIN			INT16S_MIN
-#define V_BAT_OFFSET_MAX			INT16S_MAX
+#define V_BAT_OFFSET_MIN			0
+#define V_BAT_OFFSET_MAX			INT16U_MAX
 #define V_BAT_OFFSET_DEF			30
 
 #define V_BAT_K_MIN					1
