@@ -40,7 +40,7 @@ static uint16_t ActualBatteryVoltage = 0, TargetBatteryVoltage = 0;
 CapBatteryState CONTROL_CapBatteryState = CBS_PassiveDischarge;
 
 volatile Int64U CONTROL_TimeCounter = 0;
-Int64U CONTROL_ChargeTimeout = 0, CONTROL_LEDTimeout = 0, CONTROL_SynchronizationTimeout = 0;
+Int64U CONTROL_ChargeTimeout = 0, CONTROL_SynchronizationTimeout = 0, CONTROL_PrePulseDelayTimeout = 0;
 Int64U CONTROL_PsBoardDisableTimeout = 0, CONTROL_AfterPulseTimeout = 0;
 
 Int16U CONTROL_ExtInfoCounter = 0;
@@ -57,6 +57,7 @@ void CONTROL_ResetToDefaultState();
 void CONTROL_ResetHardware(bool Discharge);
 bool CONTROL_CheckGateRegisterValue();
 void CONTROL_HandleSynchronizationTimeout();
+void CONTROL_HandlePrePulse();
 
 // Functions
 //
@@ -126,6 +127,7 @@ void CONTROL_Idle()
 	CONTROL_BatteryChargeLogic();
 	CONTROL_HandleLEDLogic(Impulse);
 	CONTROL_HandleSynchronizationTimeout();
+	CONTROL_HandlePrePulse();
 
 	DEVPROFILE_ProcessRequests();
 	CONTROL_WatchDogUpdate();
@@ -192,11 +194,20 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 						if (CONTROL_CheckGateRegisterValue())
 						{
 							DataTable[REG_OP_RESULT] = OPRESULT_NONE;
+							if(DataTable[REG_PRE_PULSE])
+							{
+								LL_WriteWordToGateRegister(DataTable[REG_PRE_PULSE]);
+								LL_FlipSpiRCK();
+								LL_WriteWordToGateRegister(DataTable[REG_GATE_REGISTER]);
+								LL_ForceSYNC(true);
+							}
 							LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
 							LL_PSBoardOutput(false);
 							CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
 							CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
 							CONTROL_SetDeviceSubState(SS_WaitingSync);
+							CONTROL_PrePulseDelayTimeout = CONTROL_TimeCounter + DataTable[REG_PRE_PULSE_DELAY];
+							CONTROL_SetDeviceState(DS_PrePulse);
 						}
 						else
 							CONTROL_SwitchToProblem(PROBLEM_GATE_REGISTER);
@@ -320,7 +331,8 @@ void CONTROL_BatteryChargeLogic()
 	VoltageHysteresis = (float)DataTable[REG_VOLTAGE_HYST] / 10;
 	
 	// Поддержание напряжения на батарее
-	if((CONTROL_State == DS_BatteryCharge || CONTROL_State == DS_Ready) && (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
+	if((CONTROL_State == DS_BatteryCharge || CONTROL_State == DS_Ready || CONTROL_State == DS_PrePulse)
+			&& (CONTROL_TimeCounter > CONTROL_PsBoardDisableTimeout))
 	{
 		switch(CONTROL_CapBatteryState)
 		{
@@ -509,6 +521,13 @@ void CONTROL_HandleSynchronizationTimeout()
 		else
 			CONTROL_SwitchToProblem(PROBLEM_SYNC_LINE);
 	}
+}
+//------------------------------------------
+
+void CONTROL_HandlePrePulse()
+{
+	if (CONTROL_State == DS_PrePulse && (CONTROL_TimeCounter > CONTROL_PrePulseDelayTimeout))
+		CONTROL_SetDeviceState(DS_Ready);
 }
 //------------------------------------------
 
