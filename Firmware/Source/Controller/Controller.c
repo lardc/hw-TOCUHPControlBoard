@@ -200,14 +200,16 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 								LL_FlipSpiRCK();
 								LL_WriteWordToGateRegister(DataTable[REG_GATE_REGISTER]);
 								LL_ForceSYNC(true);
+								CONTROL_PrePulseDelayTimeout = CONTROL_TimeCounter + DataTable[REG_PRE_PULSE_DELAY];
+								CONTROL_SetDeviceState(DS_PrePulse);
 							}
-							LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+							else
+								LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+
 							LL_PSBoardOutput(false);
 							CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
 							CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
 							CONTROL_SetDeviceSubState(SS_WaitingSync);
-							CONTROL_PrePulseDelayTimeout = CONTROL_TimeCounter + DataTable[REG_PRE_PULSE_DELAY];
-							CONTROL_SetDeviceState(DS_PrePulse);
 						}
 						else
 							CONTROL_SwitchToProblem(PROBLEM_GATE_REGISTER);
@@ -277,6 +279,10 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			
 		case ACT_DBG_GATE_EN:
 			LL_PulseSYNC();
+			break;
+
+		case ACT_DBG_STATE_SYNC_EXT:
+			DataTable[REG_DBG] = LL_GetSYNCState();
 			break;
 
 		default:

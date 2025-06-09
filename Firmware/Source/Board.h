@@ -33,7 +33,8 @@ GPIO_PortPinSettingMacro GPIO_ALT_UART_RX	= {GPIOA, Pin_10};
 GPIO_PortPinSettingMacro GPIO_ALT_UART_TX	= {GPIOA, Pin_9};
 
 // Линия синхронизации
-GPIO_PortPinSettingMacro GPIO_SYNC			= {GPIOA, Pin_8};
+GPIO_PortPinSettingMacro GPIO_SYNC			= {GPIOB, Pin_3};
+GPIO_PortPinSettingMacro GPIO_SYNC_EXT		= {GPIOA, Pin_8};
 GPIO_PortPinSettingMacro GPIO_VOUT_STATE	= {GPIOB, Pin_15};
 
 #endif // __BOARD_H

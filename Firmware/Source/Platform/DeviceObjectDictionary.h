@@ -14,6 +14,7 @@
 #define ACT_DBG_PSBOARD_OUTPUT			14	// Импульсное включение сигнала для PSBOARD
 #define ACT_DBG_GATE_CONTROL			15	// Запись значения в сдвиговый регистр управления затворами
 #define ACT_DBG_GATE_EN					16	// Включение силовых транзисторов
+#define ACT_DBG_STATE_SYNC_EXT			17	// Считывание состояния пина SYNC_EXT
 
 #define ACT_VOLTAGE_CONFIG				100	// Конфигурация напряжения и настройка затворов транзисторов
 #define ACT_PULSE_CONFIG				101	// Выключить PsBoard перед подачей импульса

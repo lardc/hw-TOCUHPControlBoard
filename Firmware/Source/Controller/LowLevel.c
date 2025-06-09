@@ -107,7 +107,7 @@ void LL_ForceSYNC(bool State)
 
 bool LL_GetSYNCState()
 {
-	return !GPIO_GetState(GPIO_SYNC);
+	return !GPIO_GetState(GPIO_SYNC_EXT);
 }
 //-----------------------------
 
