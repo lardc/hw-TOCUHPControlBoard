@@ -32,6 +32,8 @@ void EXTI9_5_IRQHandler()
 
 			if(DataTable[REG_PRE_PULSE])
 				LL_FlipSpiRCK();
+			else
+				LL_ForceSYNC(true);
 
 			CONTROL_HandleFanLogic(Impulse);
 			CONTROL_HandleLEDLogic(Impulse);
