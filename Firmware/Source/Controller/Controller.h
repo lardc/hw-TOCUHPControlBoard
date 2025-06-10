@@ -36,7 +36,6 @@ extern Int16U CONTROL_ExtInfoData[];
 // Functions
 void CONTROL_Init();
 void CONTROL_Idle();
-void CONTROL_CurrentEmergencyStop(Int16U Reason);
 DeviceSubState CONTROL_GetSubState();
 void CONTROL_SetDeviceState(DeviceState NewState);
 void CONTROL_SetDeviceSubState(DeviceSubState NewSubState);

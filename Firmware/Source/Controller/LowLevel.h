@@ -13,14 +13,10 @@ void LL_ExternalLED(bool State);
 void LL_ToggleExternalLED();
 void LL_MeanWellRelay(bool State);
 void LL_PSBoardOutput(bool State);
-void LL_SoftSpiSRCK(bool State);
-void LL_SoftSpiRCK(bool State);
-void LL_SoftSpiData(bool State);
-void LL_WriteToGateRegister(uint16_t Data);
-void LL_WriteWordToGateRegister(uint16_t Word);
-void LL_ForceSYNC(bool State);
+void LL_SoftSPILatch();
+void LL_WriteToGateRegister(uint16_t Word, bool Latch);
+void LL_SoftSPIOutputEnable(bool State);
 bool LL_GetSYNCState();
-void LL_FlipSpiRCK();
 bool LL_IsOutputVoltageHigh();
 void LL_PulseSYNC();
 

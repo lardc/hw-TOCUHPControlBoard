@@ -111,8 +111,8 @@ void CONTROL_ResetHardware(bool Discharge)
 {
 	LL_ExternalLED(false);
 	LL_PSBoardOutput(false);
-	LL_ForceSYNC(false);
-	LL_WriteToGateRegister(0);
+	LL_SoftSPIOutputEnable(false);
+	LL_WriteToGateRegister(0, true);
 
 	if(Discharge)
 	{
@@ -196,15 +196,18 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 							DataTable[REG_OP_RESULT] = OPRESULT_NONE;
 							if(DataTable[REG_PRE_PULSE])
 							{
-								LL_WriteWordToGateRegister(DataTable[REG_PRE_PULSE]);
-								LL_FlipSpiRCK();
-								LL_WriteWordToGateRegister(DataTable[REG_GATE_REGISTER]);
-								LL_ForceSYNC(true);
+								// Включение предварительного импульса
+								LL_WriteToGateRegister(DataTable[REG_PRE_PULSE], true);
+								LL_SoftSPIOutputEnable(true);
+
 								CONTROL_PrePulseDelayTimeout = CONTROL_TimeCounter + DataTable[REG_PRE_PULSE_DELAY];
 								CONTROL_SetDeviceState(DS_PrePulse);
 							}
 							else
-								LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+								LL_SoftSPIOutputEnable(false);
+
+							// Подготовка основного импульса, но без защёлкивания регистра
+							LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER], false);
 
 							LL_PSBoardOutput(false);
 							CONTROL_SynchronizationTimeout = CONTROL_TimeCounter + DataTable[REG_SYNC_WAIT_TIMEOUT];
@@ -274,7 +277,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U pUserError)
 			break;
 			
 		case ACT_DBG_GATE_CONTROL:
-			LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER]);
+			LL_WriteToGateRegister(DataTable[REG_GATE_REGISTER], true);
 			break;
 			
 		case ACT_DBG_GATE_EN:
@@ -505,22 +508,13 @@ void CONTROL_WatchDogUpdate()
 }
 //------------------------------------------
 
-
-void CONTROL_CurrentEmergencyStop(Int16U Reason)
-{
-	Impulse = false;
-	LL_FlipSpiRCK();
-
-	CONTROL_SwitchToFault(Reason);
-}
-//------------------------------------------
-
 void CONTROL_HandleSynchronizationTimeout()
 {
 	if((CONTROL_SubState == SS_WaitingSync || CONTROL_SubState == SS_StartPulse)
 			&& (CONTROL_TimeCounter > CONTROL_SynchronizationTimeout))
 	{
-		LL_WriteToGateRegister(0);
+		LL_SoftSPIOutputEnable(false);
+		LL_WriteToGateRegister(0, true);
 
 		if(CONTROL_SubState == SS_WaitingSync)
 			CONTROL_SetDeviceSubState(SS_None);
@@ -539,7 +533,8 @@ void CONTROL_HandlePrePulse()
 
 void CONTROL_FinishProcess()
 {
-	LL_WriteToGateRegister(0);
+	LL_SoftSPIOutputEnable(false);
+	LL_WriteToGateRegister(0, true);
 
 	CONTROL_PsBoardDisableTimeout = CONTROL_TimeCounter + DataTable[REG_PS_BOARD_DISABLE_TIMEOUT];
 	CONTROL_AfterPulseTimeout = CONTROL_TimeCounter + DataTable[REG_AFTER_PULSE_TIMEOUT];

@@ -30,10 +30,8 @@ void EXTI9_5_IRQHandler()
 			CONTROL_SetDeviceSubState(SS_StartPulse);
 			INT_SyncTimeoutControl(true);
 
-			if(DataTable[REG_PRE_PULSE])
-				LL_FlipSpiRCK();
-			else
-				LL_ForceSYNC(true);
+			LL_SoftSPILatch();
+			LL_SoftSPIOutputEnable(true);
 
 			CONTROL_HandleFanLogic(Impulse);
 			CONTROL_HandleLEDLogic(Impulse);
@@ -42,11 +40,13 @@ void EXTI9_5_IRQHandler()
 		case SS_StartPulse:
 			Impulse = false;
 
+			LL_SoftSPIOutputEnable(false);
+
 			INT_SyncTimeoutControl(false);
 			CONTROL_FinishProcess();
-			break;
 
-		case SS_None:
+		default:
+			LL_SoftSPIOutputEnable(false);
 			break;
 	}
 

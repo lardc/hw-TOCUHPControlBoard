@@ -51,56 +51,35 @@ void LL_PSBoardOutput(bool State)
 }
 //-----------------------------
 
-void LL_SoftSpiSRCK(bool State)
+void LL_SoftSPILatch()
 {
-	GPIO_SetState(GPIO_SRCK, State);
-}
-//-----------------------------
-
-void LL_SoftSpiRCK(bool State)
-{
-	GPIO_SetState(GPIO_RCK, State);
-}
-//-----------------------------
-
-void LL_SoftSpiData(bool State)
-{
-	GPIO_SetState(GPIO_DATA, State);
-}
-//-----------------------------
-
-void LL_WriteToGateRegister(uint16_t Data)
-{
-	LL_WriteWordToGateRegister(Data);
-	LL_FlipSpiRCK();
-	LL_WriteWordToGateRegister(0);
-}
-//-----------------------------
-
-void LL_FlipSpiRCK()
-{
-	LL_SoftSpiRCK(TRUE);
+	GPIO_SetState(GPIO_RCK, true);
 	DELAY_US(1);
-	LL_SoftSpiRCK(FALSE);
+	GPIO_SetState(GPIO_RCK, false);
 }
 //-----------------------------
 
-void LL_WriteWordToGateRegister(uint16_t Word)
+void LL_WriteToGateRegister(uint16_t Word, bool Latch)
 {
 	for(int i = 15; i >= 0; i--)
 	{
-		LL_SoftSpiData((Word >> i) & 0x1);
+		// Выставление данных
+		GPIO_SetState(GPIO_DATA, (Word >> i) & 0x1);
+
+		// Тактирование
 		DELAY_US(1);
-		LL_SoftSpiSRCK(TRUE);
+		GPIO_SetState(GPIO_SRCK, true);
 		DELAY_US(1);
-		LL_SoftSpiSRCK(FALSE);
+		GPIO_SetState(GPIO_SRCK, false);
 	}
+
+	if(Latch)
+		LL_SoftSPILatch();
 }
 //-----------------------------
 
-void LL_ForceSYNC(bool State)
+void LL_SoftSPIOutputEnable(bool State)
 {
-	// Синхронизация происходит при низком уровне на пине
 	GPIO_SetState(GPIO_SYNC, !State);
 }
 //-----------------------------
@@ -119,8 +98,8 @@ bool LL_IsOutputVoltageHigh()
 
 void LL_PulseSYNC()
 {
-	LL_ForceSYNC(true);
+	LL_SoftSPIOutputEnable(true);
 	DELAY_US(90);
-	LL_ForceSYNC(false);
+	LL_SoftSPIOutputEnable(false);
 }
 //-----------------------------
