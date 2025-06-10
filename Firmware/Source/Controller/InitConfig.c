@@ -43,10 +43,7 @@ void IO_Config()
 	
 	// Цифровые входы
 	GPIO_InitInput(GPIO_VOUT_STATE, NoPull);
-	
-	// Входы с ОК
-	GPIO_InitOpenDrainOutput(GPIO_SYNC_EXT, NoPull);
-	GPIO_SetState(GPIO_SYNC_EXT, true);
+	GPIO_InitInput(GPIO_SYNC_EXT, NoPull);
 
 	// Выходы
 	GPIO_InitPushPullOutput(GPIO_RCK);
@@ -59,7 +56,7 @@ void IO_Config()
 	GPIO_InitPushPullOutput(GPIO_HVPS_CTRL);
 	GPIO_InitPushPullOutput(GPIO_MW_CTRL);
 	
-	//Выходы с ОК
+	// Выходы с ОК
 	GPIO_InitOpenDrainOutput(GPIO_SYNC, NoPull);
 	GPIO_SetState(GPIO_SYNC, true);
 
